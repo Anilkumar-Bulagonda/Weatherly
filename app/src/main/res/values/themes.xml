@@ -2,4 +2,13 @@
 <resources>
 
     <style name="Theme.Weatherly" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <style name="Theme.Weatherly.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/app</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/sp</item>
+        <item name="postSplashScreenTheme">@style/Theme.Weatherly</item>
+        <item name="windowSplashScreenAnimationDuration">300</item>
+        <item name="windowSplashScreenIconBackgroundColor">@color/white</item>
+    </style>
+
 </resources>

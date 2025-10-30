@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "1008820068110",
+    "project_id": "career-connect-46eb4",
+    "storage_bucket": "career-connect-46eb4.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1008820068110:android:9c9b489d60542d6232415f",
+        "android_client_info": {
+          "package_name": "uk.ac.tees.mad.careerconnect"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBZwfy2fdyfPLxI7eMREgHkpkFxVdkkAx8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1008820068110:android:191bef163cd94c5f32415f",
+        "android_client_info": {
+          "package_name": "uk.ac.tees.mad.weatherly"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBZwfy2fdyfPLxI7eMREgHkpkFxVdkkAx8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
