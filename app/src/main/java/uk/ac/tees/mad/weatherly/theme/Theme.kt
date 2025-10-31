@@ -1,6 +1,5 @@
-package uk.ac.tees.mad.weatherly.ui.theme
+package uk.ac.tees.mad.weatherly.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme

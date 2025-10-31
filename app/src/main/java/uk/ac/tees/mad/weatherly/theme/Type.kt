@@ -1,4 +1,4 @@
-package uk.ac.tees.mad.weatherly.ui.theme
+package uk.ac.tees.mad.weatherly.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
