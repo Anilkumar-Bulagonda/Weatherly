@@ -3,6 +3,7 @@ package uk.ac.tees.mad.weatherly.presentaion.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.internal.isLiveLiteralsEnabled
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -11,10 +12,13 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.google.firebase.auth.FirebaseAuth
+import uk.ac.tees.mad.careerconnect.presentation.auth.AuthViewModel
 import uk.ac.tees.mad.weatherly.presentaion.AuthScreens.AuthScreen
-import uk.ac.tees.mad.weatherly.presentaion.AuthScreens.AuthViewModel
-import uk.ac.tees.mad.weatherly.presentaion.AuthScreens.LogInScreen
-import uk.ac.tees.mad.weatherly.presentaion.AuthScreens.SignInScreen
+import uk.ac.tees.mad.weatherly.presentaion.AuthScreens.LoginScreen
+
+
+import uk.ac.tees.mad.weatherly.presentaion.AuthScreens.SignUpScreen
+
 import uk.ac.tees.mad.weatherly.presentaion.HomeScreen.HomeScreen
 import uk.ac.tees.mad.weatherly.presentaion.HomeScreen.HomeViewModel
 
@@ -53,7 +57,6 @@ fun Navigation(
 
 
             AuthScreen(
-                authViewModel = authViewModel,
                 navController = navController,
             )
 
@@ -62,10 +65,10 @@ fun Navigation(
         composable<Routes.SingInScreen> {
 
 
-            SignInScreen(
+            SignUpScreen(
                 authViewModel = authViewModel,
-
-                )
+                navController = navController
+            )
 
         }
 
@@ -74,7 +77,9 @@ fun Navigation(
 
             HomeScreen(
 
-                homeViewModel = homeViewModel
+                homeViewModel = homeViewModel,
+                authViewModel = authViewModel,
+                navController = navController
             )
 
         }
@@ -82,9 +87,9 @@ fun Navigation(
         composable<Routes.LogInScreen> {
 
 
-            LogInScreen(
-
-                authViewModel = authViewModel
+            LoginScreen(
+                authViewModel = authViewModel,
+                navController = navController
             )
 
         }

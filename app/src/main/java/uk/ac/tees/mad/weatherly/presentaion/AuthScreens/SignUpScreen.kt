@@ -1,5 +1,8 @@
 package uk.ac.tees.mad.weatherly.presentaion.AuthScreens
-import uk.ac.tees.mad.careerconnect.presentation.auth.AuthViewModel
+
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+
 import android.util.Patterns
 import android.widget.Toast
 import androidx.compose.foundation.layout.Box
@@ -21,14 +24,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
+
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -43,24 +46,31 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import kotlinx.coroutines.delay
+import uk.ac.tees.mad.careerconnect.presentation.auth.AuthViewModel
+
+
 import uk.ac.tees.mad.weatherly.R
 import uk.ac.tees.mad.weatherly.presentaion.navigation.Routes
 
-
 @Composable
-fun LoginScreen(authViewModel: AuthViewModel, navController: NavController) {
+fun SignUpScreen(authViewModel: AuthViewModel, navController: NavController) {
+    var name by rememberSaveable { mutableStateOf("") }
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var Triggeer by rememberSaveable { mutableStateOf(false) }
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
     var isLoading by rememberSaveable { mutableStateOf(false) }
-
+    var isLoading2 by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(Triggeer) {
         delay(3000)
         passwordVisible = !passwordVisible
+
     }
 
     val context = LocalContext.current
+
+
+
     val cornerShape = RoundedCornerShape(14.dp)
 
     // Email validation
@@ -70,8 +80,8 @@ fun LoginScreen(authViewModel: AuthViewModel, navController: NavController) {
     val passwordRegex = Regex("^(?=.*[!@#\$%^&*(),.?\":{}|<>]).{6,10}\$")
     val isPasswordValid = passwordRegex.matches(password)
 
-    // Enable button only if fields valid
-    val isFormValid = isEmailValid && isPasswordValid
+    // Enable button only if all fields valid
+    val isFormValid = name.isNotBlank() && isEmailValid && isPasswordValid
 
     Box(
         modifier = Modifier
@@ -88,14 +98,13 @@ fun LoginScreen(authViewModel: AuthViewModel, navController: NavController) {
 
             Text(
                 buildAnnotatedString {
-                    append("Welcome Back! ")
+                    append("Create ")
                     withStyle(
                         style = SpanStyle(
-                            color = Color(0xFF6AC1FA),
-                            fontWeight = FontWeight.Bold
+                            color = Color(0xFF6AC1FA), fontWeight = FontWeight.Bold
                         )
-                    ) { append("Log In") }
-                    append(" to continue.")
+                    ) { append("Your Account") }
+                    append(" to get started!")
                 },
                 style = MaterialTheme.typography.headlineSmall,
                 modifier = Modifier.padding(horizontal = 12.dp),
@@ -103,6 +112,23 @@ fun LoginScreen(authViewModel: AuthViewModel, navController: NavController) {
             )
 
             Spacer(modifier = Modifier.height(38.dp))
+
+            // Name
+            OutlinedTextField(
+                value = name,
+                onValueChange = { input ->
+                    name = input.split(" ").joinToString(" ") { word ->
+                        if (word.isNotEmpty()) word.replaceFirstChar { it.uppercase() }
+                        else word
+                    }
+                },
+                label = { Text("Full Name") },
+                textStyle = MaterialTheme.typography.bodyLarge.copy(fontSize = 18.sp),
+                modifier = Modifier.fillMaxWidth(),
+                shape = cornerShape
+            )
+
+            Spacer(modifier = Modifier.height(18.dp))
 
             // Email
             OutlinedTextField(
@@ -151,13 +177,15 @@ fun LoginScreen(authViewModel: AuthViewModel, navController: NavController) {
                 .align(Alignment.BottomCenter),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Log In Button
+            // Sign Up Button
             Button(
                 onClick = {
                     if (isFormValid) {
-                        authViewModel.logIn(
+                        isLoading = true
+                        authViewModel.signUp(
                             email = email,
-                            passkey = password,
+                            password = password,
+                            name = name,
                             onResult = { message, success ->
                                 if (success) {
                                     isLoading = true
@@ -169,20 +197,19 @@ fun LoginScreen(authViewModel: AuthViewModel, navController: NavController) {
                                 }
                             }
 
-                            ,
+                        )
+                        isLoading = false
 
-                            )
                     } else {
                         Toast.makeText(
                             context,
-                            "Please enter valid email and password",
+                            "Please fill all fields correctly",
                             Toast.LENGTH_SHORT
                         ).show()
                     }
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF6AC1FA)
-
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -193,11 +220,12 @@ fun LoginScreen(authViewModel: AuthViewModel, navController: NavController) {
                     CircularProgressIndicator(
                         color = Color.Black,
                         strokeWidth = 2.dp,
-                        modifier = Modifier.size(30.dp)
+                        modifier = Modifier
+                            .size(30.dp)
                     )
                 } else {
                     Text(
-                        "Log In",
+                        "Sign Up",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
@@ -207,21 +235,28 @@ fun LoginScreen(authViewModel: AuthViewModel, navController: NavController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Google Button
+
             TextButton(
-                onClick = { authViewModel.handleGoogleSignIn(
-                    context = context,
-                    onResult = { message, success ->
-                        if (success) {
-                            isLoading = true
-                            navController.navigate(Routes.HomeScreen)
-                            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                            isLoading = true
-                        } else {
-                            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                onClick = {
+
+                    isLoading2 = true
+
+                    authViewModel.handleGoogleSignIn(
+                        context = context,
+                        onResult = { message, success ->
+                            if (success) {
+                                isLoading2 = false
+                                navController.navigate(Routes.HomeScreen)
+                                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                                isLoading = false
+                            } else {
+                                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                            }
                         }
-                    }
-                ) },
+                    )
+
+
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),
@@ -230,7 +265,9 @@ fun LoginScreen(authViewModel: AuthViewModel, navController: NavController) {
                     containerColor = Color(0xCBFFFFFF),
                     contentColor = MaterialTheme.colorScheme.onBackground
                 )
-            ) {
+            ) { if (isLoading2){
+                CircularProgressIndicator()
+            }else{
                 Icon(
                     painter = painterResource(id = R.drawable.google),
                     contentDescription = "Google Icon",
@@ -246,11 +283,15 @@ fun LoginScreen(authViewModel: AuthViewModel, navController: NavController) {
                 )
             }
 
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Sign Up Text
+            // Login Text
+
             TextButton(onClick = {
-                navController.navigate(Routes.SingInScreen)
+
+                navController.navigate(Routes.LogInScreen)
             }) {
                 Text(
                     buildAnnotatedString {
@@ -258,7 +299,7 @@ fun LoginScreen(authViewModel: AuthViewModel, navController: NavController) {
                             style = SpanStyle(
                                 color = MaterialTheme.colorScheme.onBackground
                             )
-                        ) { append("Don’t have an account? ") }
+                        ) { append("Already have an account? ") }
 
                         withStyle(
                             style = SpanStyle(
@@ -266,13 +307,18 @@ fun LoginScreen(authViewModel: AuthViewModel, navController: NavController) {
                                 textDecoration = TextDecoration.Underline,
                                 fontWeight = FontWeight.Medium
                             )
-                        ) { append("Sign Up") }
+                        ) { append("Log in") }
                     },
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
 
+
+
+
             Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }
+
+

@@ -22,9 +22,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
+import uk.ac.tees.mad.careerconnect.presentation.auth.AuthViewModel
 import uk.ac.tees.mad.weatherly.domain.repository.NetworkConnectivityObserver
 import uk.ac.tees.mad.weatherly.domain.repository.NetworkStatus
-import uk.ac.tees.mad.weatherly.presentaion.AuthScreens.AuthViewModel
+
 import uk.ac.tees.mad.weatherly.presentaion.HomeScreen.HomeViewModel
 import uk.ac.tees.mad.weatherly.presentaion.navigation.Navigation
 import uk.ac.tees.mad.weatherly.presentaion.utilsScreens.NetworkStatusBar
@@ -37,10 +38,15 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var connectivityObserver: NetworkConnectivityObserver
     override fun onCreate(savedInstanceState: Bundle?) {
+
+
+
         super.onCreate(savedInstanceState)
         installSplashScreen()
         enableEdgeToEdge()
         setContent {
+            val authViewModel: AuthViewModel = hiltViewModel()
+            val homeViewModel: HomeViewModel = hiltViewModel()
 
             val status by connectivityObserver.networkStatus.collectAsState()
             val navController: NavHostController = rememberNavController()
@@ -69,8 +75,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            val authViewModel: AuthViewModel = hiltViewModel()
-            val homeViewModel: HomeViewModel = hiltViewModel()
+
 
             WeatherlyTheme {
                 Scaffold(

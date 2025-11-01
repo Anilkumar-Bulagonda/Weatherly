@@ -1,45 +1,44 @@
 {
   "project_info": {
-    "project_number": "1008820068110",
-    "project_id": "career-connect-46eb4",
-    "storage_bucket": "career-connect-46eb4.firebasestorage.app"
+    "project_number": "745490922487",
+    "project_id": "weatherly-46baf",
+    "storage_bucket": "weatherly-46baf.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1008820068110:android:9c9b489d60542d6232415f",
-        "android_client_info": {
-          "package_name": "uk.ac.tees.mad.careerconnect"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyBZwfy2fdyfPLxI7eMREgHkpkFxVdkkAx8"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:1008820068110:android:191bef163cd94c5f32415f",
+        "mobilesdk_app_id": "1:745490922487:android:5bdca2be5e90e7eb014cf2",
         "android_client_info": {
           "package_name": "uk.ac.tees.mad.weatherly"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "745490922487-val7osf7g75vgvs9omma8vrrembmtm0a.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "uk.ac.tees.mad.weatherly",
+            "certificate_hash": "aa9b2fef4575569bd5c36c45235f8f2b2dc452cd"
+          }
+        },
+        {
+          "client_id": "745490922487-23veqpd9ubdep99h7q97j5llda4l02ai.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
-          "current_key": "AIzaSyBZwfy2fdyfPLxI7eMREgHkpkFxVdkkAx8"
+          "current_key": "AIzaSyDOEBh0NkfdCrfyadw7iQ1zEoqitKA4mCA"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "745490922487-23veqpd9ubdep99h7q97j5llda4l02ai.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
