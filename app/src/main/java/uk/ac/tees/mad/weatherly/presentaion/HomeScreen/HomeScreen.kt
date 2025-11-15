@@ -131,7 +131,7 @@ fun ContentScreen(
             }
 
             1 -> HomePage(
-
+                homeViewModel = homeViewModel
             )
 
 

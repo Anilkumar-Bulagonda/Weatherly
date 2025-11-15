@@ -92,7 +92,7 @@ dependencies {
 
     implementation(libs.kotlinx.serialization)
 
-    implementation("androidx.compose.material3:material3:1.2.0")
+
 
     implementation("androidx.compose.material3:material3-window-size-class:1.2.0")
 
@@ -103,4 +103,9 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
 
+
+
+    implementation("androidx.compose.material3:material3:1.3.0")
+
+    implementation(platform("androidx.compose:compose-bom:2024.02.01"))
 }

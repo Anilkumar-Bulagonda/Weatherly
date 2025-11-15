@@ -3,7 +3,6 @@ package uk.ac.tees.mad.weatherly.di
 import android.content.Context
 import dagger.Module
 import dagger.Provides
-
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
@@ -12,10 +11,11 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import uk.ac.tees.mad.weatherly.data.remote.api.WeatherApi
 import uk.ac.tees.mad.weatherly.data.repositroyIMPL.NetworkConnectivityObserverImpl
+import uk.ac.tees.mad.weatherly.data.repositroyIMPL.WeatherRepositoryImpl
 import uk.ac.tees.mad.weatherly.domain.repository.NetworkConnectivityObserver
+import uk.ac.tees.mad.weatherly.domain.repository.WeatherRepository
 import javax.inject.Named
 import javax.inject.Singleton
-import kotlin.jvm.java
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -48,12 +48,20 @@ object Module {
 
     @Provides
     @Singleton
-    fun provideNetworkConnectivityObserver(@ApplicationContext context: Context,
-                                           scope: CoroutineScope): NetworkConnectivityObserver
-    {
+    fun provideNetworkConnectivityObserver(
+        @ApplicationContext context: Context,
+        scope: CoroutineScope,
+    ): NetworkConnectivityObserver {
         return NetworkConnectivityObserverImpl(context, scope)
     }
 
+
+    @Provides
+    fun providesRepository(@Named("WeatherApi") api: WeatherApi): WeatherRepository {
+      return  WeatherRepositoryImpl(api = api)
+
+
+    }
 
 }
 

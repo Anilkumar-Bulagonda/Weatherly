@@ -39,7 +39,7 @@ class MainActivity : ComponentActivity() {
     lateinit var connectivityObserver: NetworkConnectivityObserver
     override fun onCreate(savedInstanceState: Bundle?) {
 
-
+//        2918d47481d7d0abd2195b35a3f64a1c
 
         super.onCreate(savedInstanceState)
         installSplashScreen()
