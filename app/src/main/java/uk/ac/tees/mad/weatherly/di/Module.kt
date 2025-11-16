@@ -1,6 +1,8 @@
 package uk.ac.tees.mad.weatherly.di
 
+import android.app.Application
 import android.content.Context
+import androidx.room.Room
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -9,6 +11,9 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineScope
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import uk.ac.tees.mad.weatherly.data.local.AppDatabase
+import uk.ac.tees.mad.weatherly.data.local.WeatherDao
+import uk.ac.tees.mad.weatherly.data.remote.api.HourlyWeatherApi
 import uk.ac.tees.mad.weatherly.data.remote.api.WeatherApi
 import uk.ac.tees.mad.weatherly.data.repositroyIMPL.NetworkConnectivityObserverImpl
 import uk.ac.tees.mad.weatherly.data.repositroyIMPL.WeatherRepositoryImpl
@@ -44,6 +49,13 @@ object Module {
 
     @Provides
     @Singleton
+    @Named("HourlyWeatherApi")
+    fun provideHourlyWeatherApi(@Named("Retrofit") retrofit: Retrofit): HourlyWeatherApi =
+        retrofit.create(HourlyWeatherApi::class.java)
+
+
+    @Provides
+    @Singleton
     fun provideCoroutineScope(): CoroutineScope = CoroutineScope(kotlinx.coroutines.Dispatchers.IO)
 
     @Provides
@@ -57,11 +69,28 @@ object Module {
 
 
     @Provides
-    fun providesRepository(@Named("WeatherApi") api: WeatherApi): WeatherRepository {
-      return  WeatherRepositoryImpl(api = api)
+    fun providesRepository(
+        @Named("WeatherApi") api: WeatherApi,
+        @Named("HourlyWeatherApi") hourlyApi: HourlyWeatherApi,
+    ): WeatherRepository {
+        return WeatherRepositoryImpl(api = api, hourlyApi = hourlyApi)
 
 
     }
+
+    @Provides
+    @Singleton
+    fun providesDB(app: Application): AppDatabase{
+        return Room.databaseBuilder(app, AppDatabase::class.java,"app_db").build()
+    }
+
+    @Provides
+    fun providesDao(db: AppDatabase): WeatherDao{
+        return db.weatherDao()
+    }
+
+
+
 
 }
 

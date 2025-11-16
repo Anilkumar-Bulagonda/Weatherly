@@ -26,7 +26,7 @@ import uk.ac.tees.mad.careerconnect.presentation.auth.AuthViewModel
 import uk.ac.tees.mad.weatherly.domain.repository.NetworkConnectivityObserver
 import uk.ac.tees.mad.weatherly.domain.repository.NetworkStatus
 
-import uk.ac.tees.mad.weatherly.presentaion.HomeScreen.HomeViewModel
+import uk.ac.tees.mad.weatherly.presentaion.viewModels.HomeViewModel
 import uk.ac.tees.mad.weatherly.presentaion.navigation.Navigation
 import uk.ac.tees.mad.weatherly.presentaion.utilsScreens.NetworkStatusBar
 import uk.ac.tees.mad.weatherly.theme.WeatherlyTheme

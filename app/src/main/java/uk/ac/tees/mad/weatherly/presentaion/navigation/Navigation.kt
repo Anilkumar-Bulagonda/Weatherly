@@ -20,7 +20,7 @@ import uk.ac.tees.mad.weatherly.presentaion.AuthScreens.LoginScreen
 import uk.ac.tees.mad.weatherly.presentaion.AuthScreens.SignUpScreen
 
 import uk.ac.tees.mad.weatherly.presentaion.HomeScreen.HomeScreen
-import uk.ac.tees.mad.weatherly.presentaion.HomeScreen.HomeViewModel
+import uk.ac.tees.mad.weatherly.presentaion.viewModels.HomeViewModel
 
 @Composable
 fun Navigation(

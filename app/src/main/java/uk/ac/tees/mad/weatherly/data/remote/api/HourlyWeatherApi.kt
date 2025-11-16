@@ -2,18 +2,17 @@ package uk.ac.tees.mad.weatherly.data.remote.api
 
 import retrofit2.http.GET
 import retrofit2.http.Query
-import uk.ac.tees.mad.weatherly.data.remote.Dto.WeatherResponse.WeatherResponse
+import uk.ac.tees.mad.weatherly.data.remote.dto.weatherhourly.HourlyWeatherData
+
+interface HourlyWeatherApi {
 
 
-interface WeatherApi {
-
-
-    @GET("weather")
-    suspend fun getWeatherByCity(
+    @GET("forecast")
+    suspend fun getHourlyForecast(
         @Query("q") city: String,
         @Query("appid") apiKey: String,
         @Query("units") units: String = "metric",
-    ): WeatherResponse
+    ): HourlyWeatherData
 
 
 }
