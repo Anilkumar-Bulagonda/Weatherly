@@ -59,7 +59,6 @@ object Module {
     fun provideCoroutineScope(): CoroutineScope = CoroutineScope(kotlinx.coroutines.Dispatchers.IO)
 
     @Provides
-    @Singleton
     fun provideNetworkConnectivityObserver(
         @ApplicationContext context: Context,
         scope: CoroutineScope,

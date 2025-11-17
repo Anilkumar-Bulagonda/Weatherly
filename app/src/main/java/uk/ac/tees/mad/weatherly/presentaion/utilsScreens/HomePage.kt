@@ -1,8 +1,11 @@
 package uk.ac.tees.mad.weatherly.presentaion.utilsScreens
 
+import android.content.Intent
 import android.os.Build
+import android.provider.Settings
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,14 +20,25 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AcUnit
+import androidx.compose.material.icons.filled.Air
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Cloud
+import androidx.compose.material.icons.filled.CloudQueue
+import androidx.compose.material.icons.filled.Compress
+import androidx.compose.material.icons.filled.FilterDrama
+import androidx.compose.material.icons.filled.FlashOn
+import androidx.compose.material.icons.filled.Grain
 import androidx.compose.material.icons.filled.Help
+import androidx.compose.material.icons.filled.HelpOutline
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material.icons.filled.WbCloudy
 import androidx.compose.material.icons.filled.WbSunny
+import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -49,6 +63,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
@@ -62,8 +77,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import uk.ac.tees.mad.weatherly.domain.model.DomainHourlyData
+import uk.ac.tees.mad.weatherly.domain.model.DomainWeatherData
+import uk.ac.tees.mad.weatherly.domain.repository.NetworkStatus
 import uk.ac.tees.mad.weatherly.presentaion.viewModels.HomeViewModel
-import java.time.OffsetDateTime
+import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
 
@@ -76,10 +93,12 @@ fun HomePage(modifier: Modifier = Modifier, homeViewModel: HomeViewModel) {
     val hourlyWeather by homeViewModel.hourlyWeather.collectAsState()
 
     var isRefreshing by remember { mutableStateOf(false) }
+
     val refreshState = rememberPullToRefreshState()
     val isLoading by homeViewModel.isLoading.collectAsState()
     val error by homeViewModel.error.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
+    val currentTime = LocalTime.now()
 
 
     val foucusManager = LocalFocusManager.current
@@ -91,6 +110,15 @@ fun HomePage(modifier: Modifier = Modifier, homeViewModel: HomeViewModel) {
         Color(0xFF87CEEB),
         Color(0xFF98D8E8)
     )
+
+//    Network
+ val context = LocalContext.current
+
+    val netWorkState = homeViewModel.status.collectAsState()
+    val isNetworkAvailable = homeViewModel.status.collectAsState().value == NetworkStatus.Connected
+
+
+
 
     Box(
         modifier = Modifier
@@ -193,6 +221,37 @@ fun HomePage(modifier: Modifier = Modifier, homeViewModel: HomeViewModel) {
                         modifier = Modifier.padding(24.dp)
                     ) {
 
+
+                        if (!isNetworkAvailable) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+
+                                        val intent = Intent(Settings.ACTION_WIRELESS_SETTINGS)
+                                        context.startActivity(intent)
+                                    }
+                                    .padding(vertical = 8.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.WifiOff,
+                                    contentDescription = "No Internet",
+                                    tint = Color.Red.copy(alpha = 0.8f),
+                                    modifier = Modifier.size(24.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Connect to Internet",
+                                    color = Color.Red.copy(alpha = 0.9f),
+                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(12.dp))
+                        }
+
                         Row(
                             horizontalArrangement = Arrangement.End,
                             modifier = Modifier
@@ -207,15 +266,24 @@ fun HomePage(modifier: Modifier = Modifier, homeViewModel: HomeViewModel) {
                                 color = Color.Black.copy(alpha = 0.8f)
                             )
                         }
-
+                        val (icon, tint) = when(weatherData.icon) {
+                            "01d", "01n" -> Icons.Default.WbSunny to Color(0xFFFFD700)
+                            "02d", "02n" -> Icons.Default.CloudQueue to Color.Gray
+                            "03d", "03n", "04d", "04n" -> Icons.Default.Cloud to Color.Gray
+                            "09d", "09n", "10d", "10n" -> Icons.Default.Grain to Color(0xFF2196F3)
+                            "11d", "11n" -> Icons.Default.FlashOn to Color(0xFFFF5722)
+                            "13d", "13n" -> Icons.Default.AcUnit to Color(0xFF00BCD4)
+                            "50d", "50n" -> Icons.Default.FilterDrama to Color.Gray
+                            else -> Icons.Default.HelpOutline to Color.Black
+                        }
 
                         Icon(
-                            imageVector = Icons.Default.WbSunny,
-                            contentDescription = weatherData.condition,
+                            imageVector = icon,
+                            contentDescription = "Weather Icon",
                             modifier = Modifier
                                 .size(80.dp)
                                 .align(Alignment.CenterHorizontally),
-                            tint = Color(0xFFFFD700)
+                            tint = tint
                         )
 
                         Spacer(modifier = Modifier.height(8.dp))
@@ -268,53 +336,245 @@ fun HomePage(modifier: Modifier = Modifier, homeViewModel: HomeViewModel) {
                 }
 
 
-//                Card(
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .padding(bottom = 16.dp),
-//                    shape = RoundedCornerShape(16.dp),
-//                    colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.9f))
-//                ) {
-//                    Column(modifier = Modifier.padding(16.dp)) {
-//                        Text(
-//                            text = "Details",
-//                            style = MaterialTheme.typography.titleLarge,
-//                            fontWeight = FontWeight.Bold,
-//                            modifier = Modifier.padding(bottom = 16.dp)
-//                        )
-//
-//                        Row(
-//                            modifier = Modifier.fillMaxWidth(),
-//                            horizontalArrangement = Arrangement.SpaceEvenly
-//                        ) {
-//                            WeatherDetailItem(
-//                                icon = Icons.Default.WaterDrop,
-//                                label = "Humidity",
-//                                value = "${weatherData.humidity}%"
-//                            )
-//                            WeatherDetailItem(
-//                                icon = Icons.Default.Compress,
-//                                label = "Pressure",
-//                                value = "${weatherData.pressure} hPa"
-//                            )
-//                            WeatherDetailItem(
-//                                icon = Icons.Default.Air,
-//                                label = "AQI",
-//                                value = weatherData.airQualityIndex.toString()
-//                            )
-//                        }
-//                    }
-//                }
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.9f))
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = "Details",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(bottom = 16.dp), color = Color.Black
+                        )
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            WeatherDetailItem(
+                                icon = Icons.Default.WaterDrop,
+                                label = "Humidity",
+                                value = "${weatherData.humidity}%"
+                            )
+                            WeatherDetailItem(
+                                icon = Icons.Default.Compress,
+                                label = "Pressure",
+                                value = "${weatherData.pressure} hPa"
+                            )
+                            WeatherDetailItem(
+                                icon = Icons.Default.Air,
+                                label = "AQI",
+                                value = weatherData.airQualityIndex.toString()
+                            )
+                        }
+                    }
+                }
 
 
                 LazyRow(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(hourlyWeather) { hourly ->
-                        HourlyForecastItem(hourly)
+                    itemsIndexed(hourlyWeather) { index, hourly ->
+
+                        val formatter = DateTimeFormatter.ofPattern("h a")
+                        val time = currentTime.plusHours(index.toLong())
+                        val formattedTime = time.format(formatter)
+                        HourlyForecastItem(hourly,time = formattedTime)
                     }
                 }
 
+
+            } ?: run {
+                val sampleWeatherData = DomainWeatherData(
+                    cityName = "Search For City ",
+                    latitude = 0.000,
+                    longitude = -0.000,
+                    temperature = 00.0,
+                    temp_min = 00.0,
+                    temp_max = 00.0,
+                    condition = "Unknown",
+                    humidity = 0,
+                    pressure = 0,
+                    airQualityIndex = 0,
+                    icon = "",
+                )
+                val sampleHourlyData = listOf(
+                    DomainHourlyData("12:00", 23.0, "Clear", "clear sky", "01d"),
+                    DomainHourlyData("13:00", 24.5, "Partly Cloudy", "few clouds", "02d"),
+                    DomainHourlyData("14:00", 25.0, "Cloudy", "scattered clouds", "03d"),
+                    DomainHourlyData("15:00", 24.0, "Rain", "light rain", "10d"),
+                    DomainHourlyData("16:00", 22.5, "Clear", "clear sky", "01d")
+                )
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.95f))
+                ) {
+                    Column(
+                        modifier = Modifier.padding(24.dp)
+                    ) {
+                        if (!isNetworkAvailable) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+
+                                        val intent = Intent(Settings.ACTION_WIRELESS_SETTINGS)
+                                        context.startActivity(intent)
+                                    }
+                                    .padding(vertical = 8.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.WifiOff,
+                                    contentDescription = "No Internet",
+                                    tint = Color.Red.copy(alpha = 0.8f),
+                                    modifier = Modifier.size(24.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Connect to Internet",
+                                    color = Color.Red.copy(alpha = 0.9f),
+                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(12.dp))
+                        }
+                        Row(
+                            horizontalArrangement = Arrangement.End,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 16.dp, end = 16.dp)
+                        ) {
+                            Text(
+                                text = sampleWeatherData.cityName,
+                                style = MaterialTheme.typography.headlineSmall,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 24.sp,
+                                color = Color.Black.copy(alpha = 0.8f)
+                            )
+                        }
+
+
+                        Icon(
+                            imageVector = Icons.Default.HelpOutline, // question mark
+                            contentDescription = sampleWeatherData.condition,
+                            modifier = Modifier
+                                .size(80.dp)
+                                .align(Alignment.CenterHorizontally),
+                            tint = Color.Gray // or any color you like
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+
+                        Text(
+                            text = "${sampleWeatherData.temperature}°C",
+                            style = MaterialTheme.typography.headlineLarge,
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 52.sp,
+                            modifier = Modifier.align(Alignment.CenterHorizontally),
+                            color = Color.Black.copy(alpha = 0.9f)
+                        )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(24.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                        ) {
+                            Text(
+                                text = "Min: ${sampleWeatherData.temp_min}°C",
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontSize = 18.sp
+                                ),
+                                color = Color(0xFF757575)
+                            )
+                            Text(
+                                text = "Max: ${sampleWeatherData.temp_max}°C",
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontSize = 18.sp
+                                ),
+                                color = Color(0xFF757575)
+                            )
+                        }
+
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Text(
+                            text = sampleWeatherData.condition,
+                            style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp),
+                            color = Color(0xFF757575),
+                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                        )
+
+
+                    }
+                }
+
+
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.9f))
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = "Details",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black,  // Add this to make the text black
+                            modifier = Modifier.padding(bottom = 16.dp),
+
+                            )
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            WeatherDetailItem(
+                                icon = Icons.Default.WaterDrop,
+                                label = "Humidity",
+                                value = "${sampleWeatherData.humidity}%"
+                            )
+                            WeatherDetailItem(
+                                icon = Icons.Default.Compress,
+                                label = "Pressure",
+                                value = "${sampleWeatherData.pressure} hPa"
+                            )
+                            WeatherDetailItem(
+                                icon = Icons.Default.Air,
+                                label = "AQI",
+                                value = sampleWeatherData.airQualityIndex.toString()
+                            )
+                        }
+                    }
+                }
+
+
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    itemsIndexed(sampleHourlyData) { index , hourly ->
+
+                        val formatter = DateTimeFormatter.ofPattern("h a")
+                        val time = currentTime.plusHours(index.toLong())
+                        val formattedTime = time.format(formatter)
+                        HourlyForecastItem(hourly,time = formattedTime)
+                    }
+                }
 
             }
 
@@ -324,9 +584,10 @@ fun HomePage(modifier: Modifier = Modifier, homeViewModel: HomeViewModel) {
 
     }
 }
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun HourlyForecastItem(hourly: DomainHourlyData) {
+fun HourlyForecastItem(hourly: DomainHourlyData,time : String ) {
     Card(
         modifier = Modifier
             .width(80.dp)
@@ -340,20 +601,14 @@ fun HourlyForecastItem(hourly: DomainHourlyData) {
                 .padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Time (single line only)
-            val timeOnly = try {
-                OffsetDateTime.parse(hourly.time)
-                    .toLocalTime()
-                    .format(DateTimeFormatter.ofPattern("HH:mm"))
-            } catch (e: Exception) {
-                "null"
-            }
+
 
             Text(
-                text = timeOnly.toString(),
+                text = time,
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Medium,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
+                color = Color.Black
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -369,7 +624,7 @@ fun HourlyForecastItem(hourly: DomainHourlyData) {
                 imageVector = iconVector,
                 contentDescription = hourly.condition,
                 modifier = Modifier.size(24.dp),
-                tint = Color.Gray
+                tint = Color.Black
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -378,7 +633,8 @@ fun HourlyForecastItem(hourly: DomainHourlyData) {
             Text(
                 text = "${hourly.temperature}°",
                 style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
             )
         }
     }
@@ -398,24 +654,23 @@ fun WeatherDetailItem(
             imageVector = icon,
             contentDescription = label,
             modifier = Modifier.size(24.dp),
-            tint = Color.Gray
+            tint = Color.Black  // Dark icon tint
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = value,
             style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.Medium
+            fontWeight = FontWeight.Medium,
+            color = Color.Black  // Dark text
         )
         Text(
             text = label,
             style = MaterialTheme.typography.bodySmall,
-            color = Color.Gray,
+            color = Color.Black.copy(alpha = 0.7f),  // Darker gray text for label
             textAlign = TextAlign.Center
         )
     }
 }
-
-
 
 
 val searchKeywords: List<String> = listOf(
@@ -441,12 +696,3 @@ val searchKeywords: List<String> = listOf(
     "Cambridge"
 )
 
-//Delhi
-//Condition: Clear Sky
-//Temperature: 28°C
-//Feels Like: 28°C
-//Min / Max: 28°C / 28°C
-//Humidity: 49%
-//Pressure: 1013 hPa
-//Wind: 1.0 m/s
-//AQI: 78 (Moderate)

@@ -9,9 +9,9 @@
               <option name="connection">
                 <ConnectionSetting>
                   <option name="appId" value="uk.ac.tees.mad.weatherly" />
-                  <option name="mobileSdkAppId" value="1:1008820068110:android:191bef163cd94c5f32415f" />
-                  <option name="projectId" value="career-connect-46eb4" />
-                  <option name="projectNumber" value="1008820068110" />
+                  <option name="mobileSdkAppId" value="1:745490922487:android:5bdca2be5e90e7eb014cf2" />
+                  <option name="projectId" value="weatherly-46baf" />
+                  <option name="projectNumber" value="745490922487" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

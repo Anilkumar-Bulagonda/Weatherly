@@ -17,6 +17,7 @@ import uk.ac.tees.mad.weatherly.data.local.WeatherDao
 import uk.ac.tees.mad.weatherly.data.local.WeatherEntity
 import uk.ac.tees.mad.weatherly.domain.model.DomainHourlyData
 import uk.ac.tees.mad.weatherly.domain.model.DomainWeatherData
+import uk.ac.tees.mad.weatherly.domain.repository.NetworkConnectivityObserver
 import uk.ac.tees.mad.weatherly.domain.repository.WeatherRepository
 import javax.inject.Inject
 
@@ -24,7 +25,14 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     private val weatherRepository: WeatherRepository,
     private val weatherDao: WeatherDao,
+    private  val  connectivityObserver: NetworkConnectivityObserver
 ) : ViewModel() {
+
+
+//    https://api.openweathermap.org/geo/1.0/direct?q=London&limit=1&appid=YOUR_API_KEY
+
+
+    val status = connectivityObserver.networkStatus
 
     private val _query = MutableStateFlow("")
 
