@@ -1,14 +1,18 @@
 package uk.ac.tees.mad.weatherly.data.repositroyIMPL
 
+import uk.ac.tees.mad.weatherly.data.mapper.toDomainAqiData
 import uk.ac.tees.mad.weatherly.data.mapper.toHourlyWeatherDomain
 import uk.ac.tees.mad.weatherly.data.mapper.toWeatherData
+import uk.ac.tees.mad.weatherly.data.remote.api.AirPollutionApi
 import uk.ac.tees.mad.weatherly.data.remote.api.HourlyWeatherApi
 import uk.ac.tees.mad.weatherly.data.remote.api.WeatherApi
+import uk.ac.tees.mad.weatherly.domain.model.DomainAqiData
 import uk.ac.tees.mad.weatherly.domain.model.DomainHourlyData
 import uk.ac.tees.mad.weatherly.domain.model.DomainWeatherData
 import uk.ac.tees.mad.weatherly.domain.repository.WeatherRepository
 
-class WeatherRepositoryImpl(val api: WeatherApi, val hourlyApi: HourlyWeatherApi) :
+
+class WeatherRepositoryImpl(val api: WeatherApi, val hourlyApi: HourlyWeatherApi, val airPollutionApi: AirPollutionApi) :
     WeatherRepository {
     override suspend fun getWeather(
         city: String,
@@ -29,7 +33,7 @@ class WeatherRepositoryImpl(val api: WeatherApi, val hourlyApi: HourlyWeatherApi
                 pressure = 0,
                 airQualityIndex = -1,
                 temp_max = 0.0,
-                temp_min =0.0,
+                temp_min = 0.0,
                 icon = ""
             )
         }
@@ -50,6 +54,22 @@ class WeatherRepositoryImpl(val api: WeatherApi, val hourlyApi: HourlyWeatherApi
             e.printStackTrace()
 
             emptyList()
+        }
+    }
+
+    override suspend fun getAqi(lat: Double, lon: Double, apiKey: String): DomainAqiData {
+        return try {
+
+             airPollutionApi.getAirQuality(
+                 lat = lat,
+                 lon = lon,
+                 apiKey = apiKey
+             ).toDomainAqiData()
+
+
+        } catch (e: Exception) {
+
+            DomainAqiData(0)
         }
     }
 

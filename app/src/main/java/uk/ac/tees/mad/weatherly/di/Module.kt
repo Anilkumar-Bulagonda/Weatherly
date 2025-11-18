@@ -13,6 +13,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import uk.ac.tees.mad.weatherly.data.local.AppDatabase
 import uk.ac.tees.mad.weatherly.data.local.WeatherDao
+import uk.ac.tees.mad.weatherly.data.remote.api.AirPollutionApi
 import uk.ac.tees.mad.weatherly.data.remote.api.HourlyWeatherApi
 import uk.ac.tees.mad.weatherly.data.remote.api.WeatherApi
 import uk.ac.tees.mad.weatherly.data.repositroyIMPL.NetworkConnectivityObserverImpl
@@ -54,6 +55,19 @@ object Module {
         retrofit.create(HourlyWeatherApi::class.java)
 
 
+
+
+    @Provides
+    @Singleton
+    @Named("AqiApi")
+    fun providesAqiApi(@Named("Retrofit") retrofit: Retrofit): AirPollutionApi{
+
+        return retrofit.create(AirPollutionApi::class.java)
+
+    }
+
+
+
     @Provides
     @Singleton
     fun provideCoroutineScope(): CoroutineScope = CoroutineScope(kotlinx.coroutines.Dispatchers.IO)
@@ -71,11 +85,15 @@ object Module {
     fun providesRepository(
         @Named("WeatherApi") api: WeatherApi,
         @Named("HourlyWeatherApi") hourlyApi: HourlyWeatherApi,
+        @Named("AqiApi") airPollutionApi: AirPollutionApi
     ): WeatherRepository {
-        return WeatherRepositoryImpl(api = api, hourlyApi = hourlyApi)
+        return WeatherRepositoryImpl(api = api, hourlyApi = hourlyApi,airPollutionApi = airPollutionApi)
 
 
     }
+
+
+
 
     @Provides
     @Singleton

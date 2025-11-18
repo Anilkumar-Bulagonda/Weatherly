@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uk.ac.tees.mad.weatherly.data.local.WeatherDao
 import uk.ac.tees.mad.weatherly.data.local.WeatherEntity
+import uk.ac.tees.mad.weatherly.domain.model.DomainAqiData
 import uk.ac.tees.mad.weatherly.domain.model.DomainHourlyData
 import uk.ac.tees.mad.weatherly.domain.model.DomainWeatherData
 import uk.ac.tees.mad.weatherly.domain.repository.NetworkConnectivityObserver
@@ -38,6 +39,9 @@ class HomeViewModel @Inject constructor(
 
     private val _Domain_weatherData = MutableStateFlow<DomainWeatherData?>(null)
     val weatherData = _Domain_weatherData.asStateFlow()
+
+    private val _aqiData = MutableStateFlow<DomainAqiData?>(null)
+    val aqiData = _aqiData.asStateFlow()
 
     private val _localWeatherData = MutableStateFlow<WeatherEntity?>(null)
     val localWeatherDat = _localWeatherData.asStateFlow()
@@ -69,6 +73,14 @@ class HomeViewModel @Inject constructor(
                     val data = weatherRepository.getWeather(
                         city = query, apiKey = "2918d47481d7d0abd2195b35a3f64a1c"
                     )
+
+                    val aqiData =weatherRepository.getAqi(
+                        lat = data.latitude,
+                        lon = data.latitude,
+                        apiKey =  "2918d47481d7d0abd2195b35a3f64a1c"
+                    )
+
+                    _aqiData.value = aqiData
 
 
                     Log.d("HomeViewModel", "WeatherData updated: $data")

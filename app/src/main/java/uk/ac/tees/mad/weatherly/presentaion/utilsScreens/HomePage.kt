@@ -91,7 +91,7 @@ fun HomePage(modifier: Modifier = Modifier, homeViewModel: HomeViewModel) {
 
     val localWeatherData by homeViewModel.localWeatherDat.collectAsStateWithLifecycle()
     val hourlyWeather by homeViewModel.hourlyWeather.collectAsState()
-
+    val aqiData by homeViewModel.aqiData.collectAsState()
     var isRefreshing by remember { mutableStateOf(false) }
 
     val refreshState = rememberPullToRefreshState()
@@ -368,7 +368,7 @@ fun HomePage(modifier: Modifier = Modifier, homeViewModel: HomeViewModel) {
                             WeatherDetailItem(
                                 icon = Icons.Default.Air,
                                 label = "AQI",
-                                value = weatherData.airQualityIndex.toString()
+                                value = aqiData?.aqi.toString()
                             )
                         }
                     }
