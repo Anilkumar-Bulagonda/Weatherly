@@ -25,10 +25,9 @@ import kotlinx.coroutines.delay
 import uk.ac.tees.mad.careerconnect.presentation.auth.AuthViewModel
 import uk.ac.tees.mad.weatherly.domain.repository.NetworkConnectivityObserver
 import uk.ac.tees.mad.weatherly.domain.repository.NetworkStatus
-
-import uk.ac.tees.mad.weatherly.presentaion.viewModels.HomeViewModel
 import uk.ac.tees.mad.weatherly.presentaion.navigation.Navigation
 import uk.ac.tees.mad.weatherly.presentaion.utilsScreens.NetworkStatusBar
+import uk.ac.tees.mad.weatherly.presentaion.viewModels.HomeViewModel
 import uk.ac.tees.mad.weatherly.theme.WeatherlyTheme
 import javax.inject.Inject
 
@@ -42,8 +41,11 @@ class MainActivity : ComponentActivity() {
 //        2918d47481d7d0abd2195b35a3f64a1c
 
         super.onCreate(savedInstanceState)
+
         installSplashScreen()
         enableEdgeToEdge()
+
+
         setContent {
             val authViewModel: AuthViewModel = hiltViewModel()
             val homeViewModel: HomeViewModel = hiltViewModel()

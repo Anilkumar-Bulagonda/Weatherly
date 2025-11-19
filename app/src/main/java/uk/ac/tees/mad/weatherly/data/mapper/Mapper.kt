@@ -1,7 +1,7 @@
 package uk.ac.tees.mad.weatherly.data.mapper
 
 
-import uk.ac.tees.mad.weatherly.data.remote.Dto.WeatherResponse.WeatherResponse
+import uk.ac.tees.mad.weatherly.data.remote.Dto.WeatherResponse
 import uk.ac.tees.mad.weatherly.domain.model.DomainWeatherData
 
 fun WeatherResponse.toWeatherData(): DomainWeatherData {

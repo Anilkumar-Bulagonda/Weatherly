@@ -1,4 +1,4 @@
-package uk.ac.tees.mad.weatherly.data.remote.Dto.WeatherResponse
+package uk.ac.tees.mad.weatherly.data.remote.Dto
 
 data class WeatherResponse(
     val base: String,

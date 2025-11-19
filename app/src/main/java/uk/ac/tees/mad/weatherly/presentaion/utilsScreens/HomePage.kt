@@ -3,6 +3,7 @@ package uk.ac.tees.mad.weatherly.presentaion.utilsScreens
 import android.content.Intent
 import android.os.Build
 import android.provider.Settings
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
@@ -24,6 +25,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AcUnit
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Air
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Cloud
@@ -42,6 +44,7 @@ import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -66,6 +69,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -76,6 +80,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import uk.ac.tees.mad.careerconnect.presentation.auth.AuthViewModel
+import uk.ac.tees.mad.weatherly.R
 import uk.ac.tees.mad.weatherly.domain.model.DomainHourlyData
 import uk.ac.tees.mad.weatherly.domain.model.DomainWeatherData
 import uk.ac.tees.mad.weatherly.domain.repository.NetworkStatus
@@ -87,7 +93,11 @@ import java.time.format.DateTimeFormatter
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomePage(modifier: Modifier = Modifier, homeViewModel: HomeViewModel) {
+fun HomePage(
+    modifier: Modifier = Modifier,
+    homeViewModel: HomeViewModel,
+    authViewModel: AuthViewModel,
+) {
 
     val localWeatherData by homeViewModel.localWeatherDat.collectAsStateWithLifecycle()
     val hourlyWeather by homeViewModel.hourlyWeather.collectAsState()
@@ -112,7 +122,7 @@ fun HomePage(modifier: Modifier = Modifier, homeViewModel: HomeViewModel) {
     )
 
 //    Network
- val context = LocalContext.current
+    val context = LocalContext.current
 
     val netWorkState = homeViewModel.status.collectAsState()
     val isNetworkAvailable = homeViewModel.status.collectAsState().value == NetworkStatus.Connected
@@ -123,12 +133,14 @@ fun HomePage(modifier: Modifier = Modifier, homeViewModel: HomeViewModel) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(16.dp),
+
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+
             var query by remember { mutableStateOf("") }
 
             LaunchedEffect(Unit) {
@@ -209,182 +221,221 @@ fun HomePage(modifier: Modifier = Modifier, homeViewModel: HomeViewModel) {
             Spacer(modifier = Modifier.height(20.dp))
 
             localWeatherData?.let { weatherData ->
-
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.95f))
-                ) {
-                    Column(
-                        modifier = Modifier.padding(24.dp)
-                    ) {
+                Box(modifier = Modifier.fillMaxSize()) {
 
 
-                        if (!isNetworkAvailable) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-
-                                        val intent = Intent(Settings.ACTION_WIRELESS_SETTINGS)
-                                        context.startActivity(intent)
-                                    }
-                                    .padding(vertical = 8.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.WifiOff,
-                                    contentDescription = "No Internet",
-                                    tint = Color.Red.copy(alpha = 0.8f),
-                                    modifier = Modifier.size(24.dp)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = "Connect to Internet",
-                                    color = Color.Red.copy(alpha = 0.9f),
-                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.height(12.dp))
-                        }
-
-                        Row(
-                            horizontalArrangement = Arrangement.End,
+                    Column {
+                        Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(bottom = 16.dp, end = 16.dp)
+                                .padding(bottom = 16.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.95f))
                         ) {
-                            Text(
-                                text = weatherData.cityName,
-                                style = MaterialTheme.typography.headlineSmall,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 24.sp,
-                                color = Color.Black.copy(alpha = 0.8f)
-                            )
-                        }
-                        val (icon, tint) = when(weatherData.icon) {
-                            "01d", "01n" -> Icons.Default.WbSunny to Color(0xFFFFD700)
-                            "02d", "02n" -> Icons.Default.CloudQueue to Color.Gray
-                            "03d", "03n", "04d", "04n" -> Icons.Default.Cloud to Color.Gray
-                            "09d", "09n", "10d", "10n" -> Icons.Default.Grain to Color(0xFF2196F3)
-                            "11d", "11n" -> Icons.Default.FlashOn to Color(0xFFFF5722)
-                            "13d", "13n" -> Icons.Default.AcUnit to Color(0xFF00BCD4)
-                            "50d", "50n" -> Icons.Default.FilterDrama to Color.Gray
-                            else -> Icons.Default.HelpOutline to Color.Black
+                            Column(
+                                modifier = Modifier.padding(24.dp)
+                            ) {
+
+
+                                if (!isNetworkAvailable) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Center,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable {
+
+                                                val intent =
+                                                    Intent(Settings.ACTION_WIRELESS_SETTINGS)
+                                                context.startActivity(intent)
+                                            }
+                                            .padding(vertical = 8.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.WifiOff,
+                                            contentDescription = "No Internet",
+                                            tint = Color.Red.copy(alpha = 0.8f),
+                                            modifier = Modifier.size(24.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(
+                                            text = "Connect to Internet",
+                                            color = Color.Red.copy(alpha = 0.9f),
+                                            style = MaterialTheme.typography.titleMedium.copy(
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        )
+                                    }
+
+                                    Spacer(modifier = Modifier.height(12.dp))
+                                }
+
+                                Row(
+                                    horizontalArrangement = Arrangement.End,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(bottom = 16.dp, end = 16.dp)
+                                ) {
+                                    Text(
+                                        text = weatherData.cityName,
+                                        style = MaterialTheme.typography.headlineSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 24.sp,
+                                        color = Color.Black.copy(alpha = 0.8f)
+                                    )
+                                }
+                                val (icon, tint) = when (weatherData.icon) {
+                                    "01d", "01n" -> Icons.Default.WbSunny to Color(0xFFFFD700)
+                                    "02d", "02n" -> Icons.Default.CloudQueue to Color.Gray
+                                    "03d", "03n", "04d", "04n" -> Icons.Default.Cloud to Color.Gray
+                                    "09d", "09n", "10d", "10n" -> Icons.Default.Grain to Color(
+                                        0xFF2196F3
+                                    )
+
+                                    "11d", "11n" -> Icons.Default.FlashOn to Color(0xFFFF5722)
+                                    "13d", "13n" -> Icons.Default.AcUnit to Color(0xFF00BCD4)
+                                    "50d", "50n" -> Icons.Default.FilterDrama to Color.Gray
+                                    else -> Icons.Default.HelpOutline to Color.Black
+                                }
+
+                                Icon(
+                                    imageVector = icon,
+                                    contentDescription = "Weather Icon",
+                                    modifier = Modifier
+                                        .size(80.dp)
+                                        .align(Alignment.CenterHorizontally),
+                                    tint = tint
+                                )
+
+                                Spacer(modifier = Modifier.height(8.dp))
+
+
+                                Text(
+                                    text = "${weatherData.temperature}°C",
+                                    style = MaterialTheme.typography.headlineLarge,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    fontSize = 52.sp,
+                                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                                    color = Color.Black.copy(alpha = 0.9f)
+                                )
+
+                                Spacer(modifier = Modifier.height(12.dp))
+
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(24.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                                ) {
+                                    Text(
+                                        text = "Min: ${weatherData.temp_min}°C",
+                                        style = MaterialTheme.typography.titleMedium.copy(
+                                            fontSize = 18.sp
+                                        ),
+                                        color = Color(0xFF757575)
+                                    )
+                                    Text(
+                                        text = "Max: ${weatherData.temp_max}°C",
+                                        style = MaterialTheme.typography.titleMedium.copy(
+                                            fontSize = 18.sp
+                                        ),
+                                        color = Color(0xFF757575)
+                                    )
+                                }
+
+
+                                Spacer(modifier = Modifier.height(12.dp))
+
+                                Text(
+                                    text = weatherData.condition,
+                                    style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp),
+                                    color = Color(0xFF757575),
+                                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                                )
+
+
+                            }
                         }
 
-                        Icon(
-                            imageVector = icon,
-                            contentDescription = "Weather Icon",
+
+
+                        Card(
                             modifier = Modifier
-                                .size(80.dp)
-                                .align(Alignment.CenterHorizontally),
-                            tint = tint
-                        )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-
-                        Text(
-                            text = "${weatherData.temperature}°C",
-                            style = MaterialTheme.typography.headlineLarge,
-                            fontWeight = FontWeight.ExtraBold,
-                            fontSize = 52.sp,
-                            modifier = Modifier.align(Alignment.CenterHorizontally),
-                            color = Color.Black.copy(alpha = 0.9f)
-                        )
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(24.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                                .fillMaxWidth()
+                                .padding(bottom = 16.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.9f))
                         ) {
-                            Text(
-                                text = "Min: ${weatherData.temp_min}°C",
-                                style = MaterialTheme.typography.titleMedium.copy(
-                                    fontSize = 18.sp
-                                ),
-                                color = Color(0xFF757575)
-                            )
-                            Text(
-                                text = "Max: ${weatherData.temp_max}°C",
-                                style = MaterialTheme.typography.titleMedium.copy(
-                                    fontSize = 18.sp
-                                ),
-                                color = Color(0xFF757575)
-                            )
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text(
+                                    text = "Details",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(bottom = 16.dp), color = Color.Black
+                                )
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceEvenly
+                                ) {
+                                    WeatherDetailItem(
+                                        icon = Icons.Default.WaterDrop,
+                                        label = "Humidity",
+                                        value = "${weatherData.humidity}%"
+                                    )
+                                    WeatherDetailItem(
+                                        icon = Icons.Default.Compress,
+                                        label = "Pressure",
+                                        value = "${weatherData.pressure} hPa"
+                                    )
+                                    WeatherDetailItem(
+                                        icon = Icons.Default.Air,
+                                        label = "AQI",
+                                        value = aqiData?.aqi.toString()
+                                    )
+                                }
+                            }
                         }
 
 
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        Text(
-                            text = weatherData.condition,
-                            style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp),
-                            color = Color(0xFF757575),
-                            modifier = Modifier.align(Alignment.CenterHorizontally)
-                        )
-
-
-                    }
-                }
-
-
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.9f))
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(
-                            text = "Details",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(bottom = 16.dp), color = Color.Black
-                        )
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceEvenly
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            WeatherDetailItem(
-                                icon = Icons.Default.WaterDrop,
-                                label = "Humidity",
-                                value = "${weatherData.humidity}%"
-                            )
-                            WeatherDetailItem(
-                                icon = Icons.Default.Compress,
-                                label = "Pressure",
-                                value = "${weatherData.pressure} hPa"
-                            )
-                            WeatherDetailItem(
-                                icon = Icons.Default.Air,
-                                label = "AQI",
-                                value = aqiData?.aqi.toString()
-                            )
+                            itemsIndexed(hourlyWeather) { index, hourly ->
+
+                                val formatter = DateTimeFormatter.ofPattern("h a")
+                                val time = currentTime.plusHours(index.toLong())
+                                val formattedTime = time.format(formatter)
+                                HourlyForecastItem(hourly, time = formattedTime)
+                            }
                         }
+
                     }
-                }
+                    FloatingActionButton(
+                        onClick = {
+                            authViewModel.addCity(
+                                weatherData.cityName,
+                                onResult = { condition, message ->
 
+                                    if (condition){
+                                        Toast.makeText(context,message, Toast.LENGTH_SHORT).show()
+                                    }else{
+                                        Toast.makeText(context,message, Toast.LENGTH_SHORT).show()
+                                    }
 
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    itemsIndexed(hourlyWeather) { index, hourly ->
-
-                        val formatter = DateTimeFormatter.ofPattern("h a")
-                        val time = currentTime.plusHours(index.toLong())
-                        val formattedTime = time.format(formatter)
-                        HourlyForecastItem(hourly,time = formattedTime)
+                                })
+                        },
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(16.dp, vertical = 100.dp),
+                        containerColor = colorResource(id = R.color.app).copy(alpha = 0.85f) // ⬅️ make it 85% opaque
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Add",
+                            tint = Color.Black
+                        )
                     }
+
                 }
 
 
@@ -567,12 +618,12 @@ fun HomePage(modifier: Modifier = Modifier, homeViewModel: HomeViewModel) {
                 LazyRow(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    itemsIndexed(sampleHourlyData) { index , hourly ->
+                    itemsIndexed(sampleHourlyData) { index, hourly ->
 
                         val formatter = DateTimeFormatter.ofPattern("h a")
                         val time = currentTime.plusHours(index.toLong())
                         val formattedTime = time.format(formatter)
-                        HourlyForecastItem(hourly,time = formattedTime)
+                        HourlyForecastItem(hourly, time = formattedTime)
                     }
                 }
 
@@ -587,7 +638,7 @@ fun HomePage(modifier: Modifier = Modifier, homeViewModel: HomeViewModel) {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun HourlyForecastItem(hourly: DomainHourlyData,time : String ) {
+fun HourlyForecastItem(hourly: DomainHourlyData, time: String) {
     Card(
         modifier = Modifier
             .width(80.dp)

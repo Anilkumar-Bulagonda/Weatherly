@@ -1,5 +1,7 @@
 package uk.ac.tees.mad.weatherly.presentaion.HomeScreen
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -112,6 +114,7 @@ fun HomeScreen(
 data class NavItems(val title: String, val filledIcon: ImageVector, val outlinedIcon: ImageVector)
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ContentScreen(
     selectedIndex: Int,
@@ -126,18 +129,22 @@ fun ContentScreen(
 
             0 -> {
                 FavPage(
-
-
+                    homeViewModel = homeViewModel,
+                    authViewModel = authViewModel
                 )
+
+
             }
 
             1 -> HomePage(
-                homeViewModel = homeViewModel
+                homeViewModel = homeViewModel,
+                authViewModel = authViewModel
             )
 
 
             2 -> ProfilePage(
-                authViewModel = authViewModel
+                authViewModel = authViewModel,
+
 
 
             )

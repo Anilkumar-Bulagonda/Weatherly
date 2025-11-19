@@ -1,32 +1,24 @@
 package uk.ac.tees.mad.careerconnect.presentation.auth
 
+
+
 import android.content.Context
-import android.content.Intent
-import android.util.Log
-import android.widget.Toast
-import androidx.activity.compose.ManagedActivityResultLauncher
-import androidx.activity.result.ActivityResult
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialCancellationException
-import androidx.credentials.exceptions.NoCredentialException
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavController
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
-import com.google.firebase.Firebase
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.GoogleAuthProvider
-
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
-
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,9 +26,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-
-
-
 import javax.inject.Inject
 
 
@@ -49,6 +38,7 @@ class AuthViewModel @Inject constructor() : ViewModel() {
 
     val db = FirebaseFirestore.getInstance()
     val auth: FirebaseAuth = FirebaseAuth.getInstance()
+    val firestore = FirebaseFirestore.getInstance()
 
 
     fun logoutUser() {
@@ -79,7 +69,7 @@ class AuthViewModel @Inject constructor() : ViewModel() {
                                 email = email,
                                 uid = userId,
                                 passkey = password,
-
+                                likedCity = emptyList(),
                             )
 
                             db.collection("user").document(userId).set(userInfo)
@@ -144,7 +134,7 @@ class AuthViewModel @Inject constructor() : ViewModel() {
                             email = currentUser.email ?: "",
                             uid = currentUser.uid,
                             passkey = "",
-
+                            likedCity = emptyList(),
                         )
 
                         db.collection("user").document(currentUser.uid).set(postUserInfo)
@@ -208,11 +198,84 @@ class AuthViewModel @Inject constructor() : ViewModel() {
     }
 
 
+    fun addCity(city: String, onResult: (Boolean, String?) -> Unit) {
+
+
+        val uid = auth.currentUser?.uid ?: return onResult(false, "User not logged in")
+
+        val userRef = firestore.collection("user").document(uid)
+
+        userRef.get()
+            .addOnSuccessListener { doc ->
+                val appliedJobs = doc.get("lickedCity") as? List<String> ?: emptyList()
+
+                if (appliedJobs.contains(city)) {
+
+                    onResult(false, "Already Licked This City")
+                } else {
+
+                    userRef.update("lickedCity", FieldValue.arrayUnion(city))
+                        .addOnSuccessListener {
+                            onResult(true, "Saved successfully")
+                        }
+                        .addOnFailureListener { e ->
+                            onResult(false, e.message)
+                        }
+                }
+            }
+            .addOnFailureListener { e ->
+                onResult(false, e.message)
+            }
+    }
+
+    fun removeCity(city: String, onResult: (Boolean, String?) -> Unit) {
+        val uid = auth.currentUser?.uid ?: return onResult(false, "User not logged in")
+        val userRef = firestore.collection("user").document(uid)
+
+        userRef.get()
+            .addOnSuccessListener { doc ->
+                val likedCities = doc.get("lickedCity") as? List<String> ?: emptyList()
+
+                if (!likedCities.contains(city)) {
+                    onResult(false, "City not found in your list")
+                } else {
+                    userRef.update("lickedCity", FieldValue.arrayRemove(city))
+                        .addOnSuccessListener {
+                            onResult(true, "City removed successfully")
+                        }
+                        .addOnFailureListener { e ->
+                            onResult(false, e.message)
+                        }
+                }
+            }
+            .addOnFailureListener { e ->
+                onResult(false, e.message)
+            }
+    }
 
 
 
 
+    fun fetchCurrentDonerData() {
 
+        auth.currentUser?.uid?.let { userId ->
+
+            db.collection("user").document(userId).addSnapshotListener { snapshot, e ->
+
+                if (e != null) {
+
+                    return@addSnapshotListener
+                }
+
+                if (snapshot != null && snapshot.exists()) {
+                    val data = snapshot.toObject(GetUserInfo::class.java)
+                    data?.let {
+                        _currentUserData.value = it
+                    }
+                }
+            }
+        }
+    }
 
 }
 
@@ -223,6 +286,7 @@ data class PostUserInfo(
     val email: String,
     val uid: String,
     val passkey: String,
+    val likedCity: List<String>
 
 )
 
@@ -232,5 +296,6 @@ data class GetUserInfo(
     val email: String = "",
     val uid: String = "",
     val passkey: String = "",
+    val likedCity: List<String> = emptyList<String>()
 
 )

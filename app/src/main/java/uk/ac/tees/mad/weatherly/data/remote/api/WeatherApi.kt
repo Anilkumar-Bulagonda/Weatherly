@@ -2,7 +2,7 @@ package uk.ac.tees.mad.weatherly.data.remote.api
 
 import retrofit2.http.GET
 import retrofit2.http.Query
-import uk.ac.tees.mad.weatherly.data.remote.Dto.WeatherResponse.WeatherResponse
+import uk.ac.tees.mad.weatherly.data.remote.Dto.WeatherResponse
 
 
 interface WeatherApi {

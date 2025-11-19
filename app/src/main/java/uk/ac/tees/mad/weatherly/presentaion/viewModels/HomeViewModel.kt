@@ -3,6 +3,8 @@ package uk.ac.tees.mad.weatherly.presentaion.viewModels
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,6 +15,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import uk.ac.tees.mad.weatherly.data.local.WeatherDao
 import uk.ac.tees.mad.weatherly.data.local.WeatherEntity
 import uk.ac.tees.mad.weatherly.domain.model.DomainAqiData
@@ -26,14 +29,17 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     private val weatherRepository: WeatherRepository,
     private val weatherDao: WeatherDao,
-    private  val  connectivityObserver: NetworkConnectivityObserver
-) : ViewModel() {
+    private val connectivityObserver: NetworkConnectivityObserver,
+
+    ) : ViewModel() {
 
 
 //    https://api.openweathermap.org/geo/1.0/direct?q=London&limit=1&appid=YOUR_API_KEY
 
 
     val status = connectivityObserver.networkStatus
+    private val auth = FirebaseAuth.getInstance()
+    private val firestore = FirebaseFirestore.getInstance()
 
     private val _query = MutableStateFlow("")
 
@@ -74,10 +80,10 @@ class HomeViewModel @Inject constructor(
                         city = query, apiKey = "2918d47481d7d0abd2195b35a3f64a1c"
                     )
 
-                    val aqiData =weatherRepository.getAqi(
+                    val aqiData = weatherRepository.getAqi(
                         lat = data.latitude,
                         lon = data.latitude,
-                        apiKey =  "2918d47481d7d0abd2195b35a3f64a1c"
+                        apiKey = "2918d47481d7d0abd2195b35a3f64a1c"
                     )
 
                     _aqiData.value = aqiData
@@ -138,5 +144,32 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
+
+
+    private val _lickedCity = MutableStateFlow<List<WeatherEntity>>(emptyList())
+    val lickedCity: StateFlow<List<WeatherEntity>> = _lickedCity
+
+    fun getLickedCity() {
+        val uid = auth.currentUser?.uid ?: return
+
+        viewModelScope.launch {
+
+
+            val snapshot = firestore.collection("user").document(uid).get().await()
+
+            val lickedCity = snapshot.get("lickedCity") as? List<String> ?: emptyList()
+
+            if (lickedCity.isNotEmpty()) {
+                weatherDao.getLickedCity(lickedCity).collect { cityData ->
+                    _lickedCity.value = cityData
+
+                }
+            } else {
+                _lickedCity.value = emptyList()
+            }
+
+        }
+    }
+
 
 }
