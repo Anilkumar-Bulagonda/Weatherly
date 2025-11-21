@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.HelpOutline
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -61,17 +62,26 @@ import uk.ac.tees.mad.weatherly.presentaion.viewModels.HomeViewModel
 fun FavPage(
     modifier: Modifier = Modifier,
     homeViewModel: HomeViewModel,
-    authViewModel: AuthViewModel
+    authViewModel: AuthViewModel,
 ) {
     val likedCities by homeViewModel.lickedCity.collectAsState()
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val listState = rememberLazyListState()
 
+    var isLoading = homeViewModel.isLoading.collectAsState().value
+
+    LaunchedEffect(Unit) {
+
+        homeViewModel.getLickedCity()
+    }
+
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {
+
         homeViewModel.getLickedCity()
+
 
     }
     Scaffold(
@@ -107,11 +117,18 @@ fun FavPage(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "No favorite cities yet.",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+
+                    if (isLoading) {
+                        CircularProgressIndicator()
+                    } else {
+                        Text(
+                            text = "No favorite cities yet.",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+
                 }
             } else {
                 LazyColumn(
@@ -125,14 +142,13 @@ fun FavPage(
 
                             onDelete = { city ->
 
-                                authViewModel.removeCity(city, onResult = {
-                                        condition, message ->
+                                authViewModel.removeCity(city, onResult = { condition, message ->
 
-                                    if (condition){
-                                        Toast.makeText(context,message, Toast.LENGTH_SHORT).show()
+                                    if (condition) {
+                                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                                         homeViewModel.getLickedCity()
-                                    }else{
-                                        Toast.makeText(context,message, Toast.LENGTH_SHORT).show()
+                                    } else {
+                                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                                     }
 
                                 })

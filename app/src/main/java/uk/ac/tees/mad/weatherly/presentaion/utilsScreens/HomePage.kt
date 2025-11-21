@@ -27,10 +27,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AcUnit
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Air
+import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.CloudQueue
 import androidx.compose.material.icons.filled.Compress
+import androidx.compose.material.icons.filled.Deblur
 import androidx.compose.material.icons.filled.FilterDrama
 import androidx.compose.material.icons.filled.FlashOn
 import androidx.compose.material.icons.filled.Grain
@@ -135,7 +137,7 @@ fun HomePage(
             .fillMaxSize()
             .padding(16.dp),
 
-    ) {
+        ) {
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -416,10 +418,10 @@ fun HomePage(
                                 weatherData.cityName,
                                 onResult = { condition, message ->
 
-                                    if (condition){
-                                        Toast.makeText(context,message, Toast.LENGTH_SHORT).show()
-                                    }else{
-                                        Toast.makeText(context,message, Toast.LENGTH_SHORT).show()
+                                    if (condition) {
+                                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                                    } else {
+                                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                                     }
 
                                 })
@@ -665,17 +667,21 @@ fun HourlyForecastItem(hourly: DomainHourlyData, time: String) {
             Spacer(modifier = Modifier.height(8.dp))
 
 
-            val iconVector = when (hourly.icon) {
-                "01d" -> Icons.Default.WbSunny
-                "02d", "03d" -> Icons.Default.WbCloudy
-                "10d" -> Icons.Default.WaterDrop
-                else -> Icons.Default.Help
+            val (iconVector, iconTint) = when (hourly.icon) {
+                "01d", "01n" -> Icons.Default.WbSunny to Color(0xFFFFD54F)
+                "02d", "02n", "03d", "03n" -> Icons.Default.WbCloudy to Color(0xFF90A4AE)
+                "04d", "04n" -> Icons.Default.Cloud to Color(0xFF78909C)
+                "09d", "09n", "10d", "10n" -> Icons.Default.WaterDrop to Color(0xFF64B5F6)
+                "11d", "11n" -> Icons.Default.Bolt to Color(0xFFFFA000)
+                "13d", "13n" -> Icons.Default.AcUnit to Color(0xFFB3E5FC)
+                "50d", "50n" -> Icons.Default.Deblur to Color(0xFFB0BEC5)
+                else -> Icons.Default.Help to Color.Gray
             }
             Icon(
                 imageVector = iconVector,
                 contentDescription = hourly.condition,
                 modifier = Modifier.size(24.dp),
-                tint = Color.Black
+                tint = iconTint
             )
 
             Spacer(modifier = Modifier.height(8.dp))

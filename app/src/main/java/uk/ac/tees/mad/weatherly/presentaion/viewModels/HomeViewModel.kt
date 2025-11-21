@@ -59,7 +59,7 @@ class HomeViewModel @Inject constructor(
     private val _hourlyWeather = MutableStateFlow<List<DomainHourlyData>>(emptyList())
     val hourlyWeather: StateFlow<List<DomainHourlyData>> = _hourlyWeather
     private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading
+    var isLoading: StateFlow<Boolean> = _isLoading
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
@@ -113,7 +113,7 @@ class HomeViewModel @Inject constructor(
                         )
                     }
 
-                    fetchHourlyWeather(
+                    fetchForecastData(
                         city = query, apiKey = "2918d47481d7d0abd2195b35a3f64a1c"
                     )
 
@@ -130,9 +130,9 @@ class HomeViewModel @Inject constructor(
     }
 
 
-    fun fetchHourlyWeather(city: String, apiKey: String) {
+    fun fetchForecastData(city: String, apiKey: String) {
         viewModelScope.launch {
-            _isLoading.value = true
+
             _error.value = null
             try {
                 val list = weatherRepository.getHourlyWeather(city, apiKey)
@@ -140,7 +140,7 @@ class HomeViewModel @Inject constructor(
             } catch (e: Exception) {
                 _error.value = "Failed to fetch hourly weather"
             } finally {
-                _isLoading.value = false
+
             }
         }
     }
@@ -154,17 +154,53 @@ class HomeViewModel @Inject constructor(
 
         viewModelScope.launch {
 
+            _isLoading.value = true
 
             val snapshot = firestore.collection("user").document(uid).get().await()
 
             val lickedCity = snapshot.get("lickedCity") as? List<String> ?: emptyList()
 
             if (lickedCity.isNotEmpty()) {
-                weatherDao.getLickedCity(lickedCity).collect { cityData ->
-                    _lickedCity.value = cityData
+
+                lickedCity.forEach { city ->
+
+                    val updatedCityData = weatherRepository.getWeather(
+                        city = city,
+                        apiKey = "2918d47481d7d0abd2195b35a3f64a1c"
+                    )
+
+
+                    weatherDao.getLickedCity(lickedCity).collect { cityData ->
+                        _lickedCity.value = cityData
+
+                    }
+
+
+
+                    weatherDao.upsertWeather(
+                        WeatherEntity(
+                            cityName = updatedCityData.cityName,
+                            latitude = updatedCityData.latitude,
+                            longitude = updatedCityData.longitude,
+                            temperature = updatedCityData.temperature,
+                            condition = updatedCityData.condition,
+                            humidity = updatedCityData.humidity,
+                            pressure = updatedCityData.pressure,
+                            airQualityIndex = updatedCityData.airQualityIndex,
+                            temp_max = updatedCityData.temp_max,
+                            temp_min = updatedCityData.temp_min,
+                            icon = updatedCityData.icon
+                        )
+                    )
+
+                    _isLoading.value = false
 
                 }
+
+
+
             } else {
+                _isLoading.value = false
                 _lickedCity.value = emptyList()
             }
 

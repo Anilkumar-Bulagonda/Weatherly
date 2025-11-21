@@ -25,4 +25,9 @@ interface WeatherDao {
 
     @Query("SELECT * FROM weather_table WHERE cityName IN (:city)")
     fun getLickedCity(city: List<String>): Flow<List<WeatherEntity>>
+
+    @Upsert
+    suspend fun updateLikedCities(cities: List<WeatherEntity>)
+
+
 }
