@@ -264,7 +264,7 @@ fun ProfilePage(
                             Icon(
                                 imageVector = Icons.Default.Edit,
                                 contentDescription = "Edit Profile",
-                                tint = Color.Black
+                                tint = MaterialTheme.colorScheme.onBackground
                             )
                         }
                     }
@@ -275,7 +275,7 @@ fun ProfilePage(
                         .fillMaxWidth()
                         .padding(vertical = 8.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = Color(0xFFBDE2FF) // your custom blue color
+                        containerColor = Color(0xFFBDE2FF)
                     ),
                     shape = RoundedCornerShape(12.dp),
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)

@@ -108,4 +108,15 @@ dependencies {
     implementation("androidx.compose.material3:material3:1.3.0")
 
     implementation(platform("androidx.compose:compose-bom:2024.02.01"))
+
+
+
+    implementation("io.github.jan-tennert.supabase:gotrue-kt:1.3.2")
+    implementation("io.github.jan-tennert.supabase:compose-auth:1.3.2")
+    implementation("io.github.jan-tennert.supabase:compose-auth-ui:1.3.2")
+    implementation("io.github.jan-tennert.supabase:storage-kt:1.3.2")
+    implementation("io.ktor:ktor-client-cio:2.3.4")
+    implementation("com.google.firebase:firebase-messaging:24.0.0")
+
+
 }
