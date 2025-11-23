@@ -19,6 +19,7 @@ import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.jan.supabase.storage.storage
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,6 +27,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import uk.ac.tees.mad.weatherly.data.remote.supabase.SupabaseClientProvider
 import javax.inject.Inject
 
 
@@ -273,6 +275,33 @@ class AuthViewModel @Inject constructor() : ViewModel() {
                         _currentUserData.value = it
                     }
                 }
+            }
+        }
+    }
+
+    fun updateProfile(
+        ProfielImageByteArray: ByteArray,
+        name: String,
+        onResult: (String, Boolean) -> Unit,
+    ) {
+        viewModelScope.launch {
+            val userId = auth.currentUser?.uid ?: return@launch
+            val imageFileName = "profile_images/$userId.jpg"
+            try {
+                val ImageBucket = SupabaseClientProvider.client.storage["profile_images"]
+                ImageBucket.upload(imageFileName, ProfielImageByteArray, upsert = true)
+                val profileImageUrl = ImageBucket.publicUrl(imageFileName)
+                val updates = mapOf(
+                    "profileImageUrl" to profileImageUrl,
+                    "name" to name,
+                )
+                firestore.collection("user").document(userId).update(updates).addOnSuccessListener {
+                    onResult("Profile Update Success", true)
+                }.addOnFailureListener { e ->
+                    onResult(e.toString(), false)
+                }
+            } catch (e: Exception) {
+                onResult(e.toString(), false)
             }
         }
     }

@@ -210,32 +210,7 @@ class HomeViewModel @Inject constructor(
     }
 
 
-    fun updateProfile(
-        ProfielImageByteArray: ByteArray,
-        name: String,
-        onResult: (String, Boolean) -> Unit,
-    ) {
-        viewModelScope.launch {
-            val userId = auth.currentUser?.uid ?: return@launch
-            val imageFileName = "profile_images/$userId.jpg"
-            try {
-                val ImageBucket = SupabaseClientProvider.client.storage["profile_images"]
-                ImageBucket.upload(imageFileName, ProfielImageByteArray, upsert = true)
-                val profileImageUrl = ImageBucket.publicUrl(imageFileName)
-                val updates = mapOf(
-                    "profileImageUrl" to profileImageUrl,
-                    "name" to name,
-                )
-                firestore.collection("user").document(userId).update(updates).addOnSuccessListener {
-                    onResult("Profile Update Success", true)
-                }.addOnFailureListener { e ->
-                    onResult(e.toString(), false)
-                }
-            } catch (e: Exception) {
-                onResult(e.toString(), false)
-            }
-        }
-    }
+
 
 
 }

@@ -71,6 +71,7 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import uk.ac.tees.mad.careerconnect.presentation.auth.AuthViewModel
 import uk.ac.tees.mad.weatherly.R
+import uk.ac.tees.mad.weatherly.converter.uriToByteArray
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -78,14 +79,20 @@ import uk.ac.tees.mad.weatherly.R
 fun ProfilePage(
     modifier: Modifier = Modifier,
     authViewModel: AuthViewModel,
-) {
+
+    ) {
     val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        authViewModel.fetchCurrentDonerData()
+    }
+    var updateState by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         authViewModel.fetchCurrentDonerData()
     }
 
     var newName by rememberSaveable { mutableStateOf("") }
     var isLoading by rememberSaveable { mutableStateOf(false) }
+    var isUpdating by rememberSaveable { mutableStateOf(false) }
     val cornerShape = RoundedCornerShape(14.dp)
     var isEditing by rememberSaveable { mutableStateOf(false) }
     val currentUser by authViewModel.currentUserData.collectAsState()
@@ -287,7 +294,8 @@ fun ProfilePage(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            if (!isEditing){
+                            if (!isEditing) {
+
                                 Icon(
                                     imageVector = Icons.Default.Person,
                                     contentDescription = "Name",
@@ -301,7 +309,7 @@ fun ProfilePage(
                                 OutlinedTextField(
                                     value = newName,
                                     onValueChange = { newName = it },
-                                    label = { Text("Name", color  =Color.Black) },
+                                    label = { Text("Update Name", color = Color.Black) },
                                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                                     modifier = Modifier
                                         .weight(1f)
@@ -311,21 +319,58 @@ fun ProfilePage(
                                         unfocusedContainerColor = Color.Transparent,
                                         disabledContainerColor = Color.Transparent,
                                         focusedTextColor = Color.Black,
-                                        unfocusedTextColor =Color.Black,
-                                        focusedLabelColor =Color.Black,
+                                        unfocusedTextColor = Color.Black,
+                                        focusedLabelColor = Color.Black,
                                         unfocusedLabelColor = Color.Black,
-                                        focusedIndicatorColor =Color.Black,
-                                        unfocusedIndicatorColor =Color.Black,
-                                        cursorColor  =Color.Black,
+                                        focusedIndicatorColor = Color.Black,
+                                        unfocusedIndicatorColor = Color.Black,
+                                        cursorColor = Color.Black,
                                     )
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
-                                IconButton(onClick = {}) {
-                                    Icon(
-                                        imageVector = Icons.Default.Check,
-                                        contentDescription = "Save",
-                                        tint = Color(0xFF333333)
-                                    )
+
+                                IconButton(onClick = {
+
+                                    isUpdating = true
+                                    val profielImageByteArray = imageUri.uriToByteArray(context)
+                                    profielImageByteArray?.let() {
+
+                                        authViewModel.updateProfile(
+                                            ProfielImageByteArray = profielImageByteArray,
+                                            name = if (newName.isNotBlank()) newName else currentUser.name,
+                                            onResult = { message, boolean ->
+                                                if (boolean) {
+                                                    Toast.makeText(
+                                                        context, message, Toast.LENGTH_SHORT
+                                                    ).show()
+                                                    updateState = ! updateState
+                                                    isEditing = false
+
+                                                } else {
+                                                    isUpdating = false
+
+                                                    Toast.makeText(
+                                                        context, message, Toast.LENGTH_SHORT
+                                                    ).show()
+                                                }
+
+                                            }
+                                        )
+                                    }
+
+
+                                }) {
+
+                                    if (isUpdating) {
+                                        CircularProgressIndicator()
+                                    } else {
+                                        Icon(
+                                            imageVector = Icons.Default.Check,
+                                            contentDescription = "Save",
+                                            tint = Color(0xFF333333)
+                                        )
+                                    }
+
                                 }
                                 IconButton(onClick = { isEditing = false }) {
                                     Icon(
@@ -352,9 +397,9 @@ fun ProfilePage(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 8.dp),
-                            colors = CardDefaults.cardColors(
-                            containerColor = Color(0xFFBDE2FF) // your custom blue color
-                            ),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(0xFFBDE2FF) // your custom blue color
+                    ),
                     shape = RoundedCornerShape(12.dp),
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
