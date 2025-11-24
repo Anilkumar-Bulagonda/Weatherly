@@ -1,9 +1,13 @@
 package uk.ac.tees.mad.weatherly.data.local
 
 import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
+import uk.ac.tees.mad.weatherly.data.local.forcast.ForecastEntity
+import uk.ac.tees.mad.weatherly.data.local.weather.WeatherEntity
 
 @Dao
 interface WeatherDao {
@@ -28,6 +32,14 @@ interface WeatherDao {
 
     @Upsert
     suspend fun updateLikedCities(cities: List<WeatherEntity>)
+
+
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertForecast(forecast: ForecastEntity)
+
+    @Query("SELECT * FROM forecast_table WHERE cityName = :cityName")
+    suspend fun getForecast(cityName: String): ForecastEntity?
 
 
 }

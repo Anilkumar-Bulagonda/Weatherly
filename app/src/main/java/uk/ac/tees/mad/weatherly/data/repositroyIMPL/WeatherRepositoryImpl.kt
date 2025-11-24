@@ -7,7 +7,7 @@ import uk.ac.tees.mad.weatherly.data.remote.api.AirPollutionApi
 import uk.ac.tees.mad.weatherly.data.remote.api.HourlyWeatherApi
 import uk.ac.tees.mad.weatherly.data.remote.api.WeatherApi
 import uk.ac.tees.mad.weatherly.domain.model.DomainAqiData
-import uk.ac.tees.mad.weatherly.domain.model.DomainHourlyData
+import uk.ac.tees.mad.weatherly.domain.model.DomainForecastData
 import uk.ac.tees.mad.weatherly.domain.model.DomainWeatherData
 import uk.ac.tees.mad.weatherly.domain.repository.WeatherRepository
 
@@ -44,7 +44,7 @@ class WeatherRepositoryImpl(val api: WeatherApi, val hourlyApi: HourlyWeatherApi
     override suspend fun getHourlyWeather(
         city: String,
         apiKey: String,
-    ): List<DomainHourlyData> {
+    ): List<DomainForecastData> {
         return try {
 
             val dto = hourlyApi.getHourlyForecast(city, apiKey)

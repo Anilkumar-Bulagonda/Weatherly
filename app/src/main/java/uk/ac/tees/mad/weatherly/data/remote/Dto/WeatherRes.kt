@@ -1,6 +1,6 @@
 package uk.ac.tees.mad.weatherly.data.remote.Dto
 
-data class WeatherResponse(
+data class WeatherRes(
     val base: String,
     val clouds: Clouds,
     val cod: Int,

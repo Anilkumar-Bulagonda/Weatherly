@@ -84,7 +84,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import uk.ac.tees.mad.careerconnect.presentation.auth.AuthViewModel
 import uk.ac.tees.mad.weatherly.R
-import uk.ac.tees.mad.weatherly.domain.model.DomainHourlyData
+import uk.ac.tees.mad.weatherly.domain.model.DomainForecastData
 import uk.ac.tees.mad.weatherly.domain.model.DomainWeatherData
 import uk.ac.tees.mad.weatherly.domain.repository.NetworkStatus
 import uk.ac.tees.mad.weatherly.presentaion.viewModels.HomeViewModel
@@ -456,11 +456,11 @@ fun HomePage(
                     icon = "",
                 )
                 val sampleHourlyData = listOf(
-                    DomainHourlyData("12:00", 23.0, "Clear", "clear sky", "01d"),
-                    DomainHourlyData("13:00", 24.5, "Partly Cloudy", "few clouds", "02d"),
-                    DomainHourlyData("14:00", 25.0, "Cloudy", "scattered clouds", "03d"),
-                    DomainHourlyData("15:00", 24.0, "Rain", "light rain", "10d"),
-                    DomainHourlyData("16:00", 22.5, "Clear", "clear sky", "01d")
+                    DomainForecastData("12:00", 23.0, "Clear", "clear sky", "01d"),
+                    DomainForecastData("13:00", 24.5, "Partly Cloudy", "few clouds", "02d"),
+                    DomainForecastData("14:00", 25.0, "Cloudy", "scattered clouds", "03d"),
+                    DomainForecastData("15:00", 24.0, "Rain", "light rain", "10d"),
+                    DomainForecastData("16:00", 22.5, "Clear", "clear sky", "01d")
                 )
                 Card(
                     modifier = Modifier
@@ -640,7 +640,7 @@ fun HomePage(
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun HourlyForecastItem(hourly: DomainHourlyData, time: String) {
+fun HourlyForecastItem(hourly: DomainForecastData, time: String) {
     Card(
         modifier = Modifier
             .width(80.dp)

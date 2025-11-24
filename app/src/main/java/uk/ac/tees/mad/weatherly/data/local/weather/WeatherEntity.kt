@@ -1,13 +1,13 @@
-package uk.ac.tees.mad.weatherly.data.local
+package uk.ac.tees.mad.weatherly.data.local.weather
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-
 @Entity(tableName = "weather_table")
 data class WeatherEntity(
 
-    @PrimaryKey val cityName: String = "",
+    @PrimaryKey
+    val cityName: String = "",
     val latitude: Double = 0.0,
     val longitude: Double = 0.0,
     val temperature: Double = 0.0,

@@ -54,7 +54,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import uk.ac.tees.mad.careerconnect.presentation.auth.AuthViewModel
 import uk.ac.tees.mad.weatherly.R
-import uk.ac.tees.mad.weatherly.data.local.WeatherEntity
+import uk.ac.tees.mad.weatherly.data.local.weather.WeatherEntity
 import uk.ac.tees.mad.weatherly.presentaion.viewModels.HomeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.github.jan.supabase.storage.storage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,10 +17,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import uk.ac.tees.mad.weatherly.data.local.WeatherDao
-import uk.ac.tees.mad.weatherly.data.local.WeatherEntity
-import uk.ac.tees.mad.weatherly.data.remote.supabase.SupabaseClientProvider
+import uk.ac.tees.mad.weatherly.data.local.forcast.ForecastEntity
+import uk.ac.tees.mad.weatherly.data.local.weather.WeatherEntity
 import uk.ac.tees.mad.weatherly.domain.model.DomainAqiData
-import uk.ac.tees.mad.weatherly.domain.model.DomainHourlyData
+import uk.ac.tees.mad.weatherly.domain.model.DomainForecastData
 import uk.ac.tees.mad.weatherly.domain.model.DomainWeatherData
 import uk.ac.tees.mad.weatherly.domain.repository.NetworkConnectivityObserver
 import uk.ac.tees.mad.weatherly.domain.repository.WeatherRepository
@@ -46,7 +45,7 @@ class HomeViewModel @Inject constructor(
     private val _query = MutableStateFlow("")
 
     private val _Domain_weatherData = MutableStateFlow<DomainWeatherData?>(null)
-    val weatherData = _Domain_weatherData.asStateFlow()
+    val Domain_weatherData = _Domain_weatherData.asStateFlow()
 
     private val _aqiData = MutableStateFlow<DomainAqiData?>(null)
     val aqiData = _aqiData.asStateFlow()
@@ -54,12 +53,9 @@ class HomeViewModel @Inject constructor(
     private val _localWeatherData = MutableStateFlow<WeatherEntity?>(null)
     val localWeatherDat = _localWeatherData.asStateFlow()
 
-    private val _isRefreshing = MutableStateFlow(false)
-    val isRefreshing = _isRefreshing.asStateFlow()
 
-
-    private val _hourlyWeather = MutableStateFlow<List<DomainHourlyData>>(emptyList())
-    val hourlyWeather: StateFlow<List<DomainHourlyData>> = _hourlyWeather
+    private val _hourlyWeather = MutableStateFlow<List<DomainForecastData>>(emptyList())
+    val hourlyWeather: StateFlow<List<DomainForecastData>> = _hourlyWeather
     private val _isLoading = MutableStateFlow(false)
     var isLoading: StateFlow<Boolean> = _isLoading
     private val _error = MutableStateFlow<String?>(null)
@@ -135,12 +131,20 @@ class HomeViewModel @Inject constructor(
     fun fetchForecastData(city: String, apiKey: String) {
         viewModelScope.launch {
 
-            _error.value = null
+          
             try {
                 val list = weatherRepository.getHourlyWeather(city, apiKey)
+                
                 _hourlyWeather.value = list
+                
+                weatherDao.insertForecast(
+                    forecast = ForecastEntity(
+                        cityName = city,
+                        DaysData = list
+                    )
+                )
             } catch (e: Exception) {
-                _error.value = "Failed to fetch hourly weather"
+              
             } finally {
 
             }

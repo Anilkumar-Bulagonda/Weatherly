@@ -1,7 +1,7 @@
 package uk.ac.tees.mad.weatherly.domain.repository
 
 import kotlinx.coroutines.flow.Flow
-import uk.ac.tees.mad.weatherly.data.local.WeatherEntity
+import uk.ac.tees.mad.weatherly.data.local.weather.WeatherEntity
 
 interface LocalWeatherRepository {
 

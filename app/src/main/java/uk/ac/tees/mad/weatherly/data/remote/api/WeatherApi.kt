@@ -2,7 +2,7 @@ package uk.ac.tees.mad.weatherly.data.remote.api
 
 import retrofit2.http.GET
 import retrofit2.http.Query
-import uk.ac.tees.mad.weatherly.data.remote.Dto.WeatherResponse
+import uk.ac.tees.mad.weatherly.data.remote.Dto.WeatherRes
 
 
 interface WeatherApi {
@@ -13,7 +13,7 @@ interface WeatherApi {
         @Query("q") city: String,
         @Query("appid") apiKey: String,
         @Query("units") units: String = "metric",
-    ): WeatherResponse
+    ): WeatherRes
 
 
 }

@@ -1,10 +1,10 @@
 package uk.ac.tees.mad.weatherly.data.mapper
 
 
-import uk.ac.tees.mad.weatherly.data.remote.Dto.WeatherResponse
+import uk.ac.tees.mad.weatherly.data.remote.Dto.WeatherRes
 import uk.ac.tees.mad.weatherly.domain.model.DomainWeatherData
 
-fun WeatherResponse.toWeatherData(): DomainWeatherData {
+fun WeatherRes.toWeatherData(): DomainWeatherData {
     return DomainWeatherData(
         cityName = this.name,
         latitude = this.coord?.lat ?: 0.0,
