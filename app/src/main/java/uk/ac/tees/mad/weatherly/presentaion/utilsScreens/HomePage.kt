@@ -3,6 +3,7 @@ package uk.ac.tees.mad.weatherly.presentaion.utilsScreens
 import android.content.Intent
 import android.os.Build
 import android.provider.Settings
+import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
@@ -102,13 +103,13 @@ fun HomePage(
 ) {
 
     val localWeatherData by homeViewModel.localWeatherDat.collectAsStateWithLifecycle()
-    val hourlyWeather by homeViewModel.hourlyWeather.collectAsState()
+    val hourlyWeather by homeViewModel.forecastDomainData.collectAsState()
     val aqiData by homeViewModel.aqiData.collectAsState()
     var isRefreshing by remember { mutableStateOf(false) }
 
     val refreshState = rememberPullToRefreshState()
     val isLoading by homeViewModel.isLoading.collectAsState()
-    val error by homeViewModel.error.collectAsState()
+
     var searchQuery by remember { mutableStateOf("") }
     val currentTime = LocalTime.now()
 
@@ -399,17 +400,21 @@ fun HomePage(
                         }
 
 
-                        LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            itemsIndexed(hourlyWeather) { index, hourly ->
+                         LazyRow(
+                             horizontalArrangement = Arrangement.spacedBy(12.dp)
+                         ) {
+                             itemsIndexed(hourlyWeather) { index, hourly ->
 
-                                val formatter = DateTimeFormatter.ofPattern("h a")
-                                val time = currentTime.plusHours(index.toLong())
-                                val formattedTime = time.format(formatter)
-                                HourlyForecastItem(hourly, time = formattedTime)
-                            }
-                        }
+                                 Log.d("HomeViewModel", "WeatherData updated: ${hourly}")
+
+                                 val formatter = DateTimeFormatter.ofPattern("h a")
+                                 val time = currentTime.plusHours(index.toLong())
+                                 val formattedTime = time.format(formatter)
+                                 HourlyForecastItem(hourly, time = formattedTime)
+                             }
+                         }
+
+
 
                     }
                     FloatingActionButton(
@@ -523,7 +528,7 @@ fun HomePage(
                             modifier = Modifier
                                 .size(80.dp)
                                 .align(Alignment.CenterHorizontally),
-                            tint = Color.Gray // or any color you like
+                            tint = Color.Gray
                         )
 
                         Spacer(modifier = Modifier.height(8.dp))

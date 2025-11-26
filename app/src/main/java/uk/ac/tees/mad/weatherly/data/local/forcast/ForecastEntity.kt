@@ -13,10 +13,5 @@ data class ForecastEntity (
 
 )
 
-//data class DomainForecastData_tow(
-//    val time: String,
-//    val temperature: Double,
-//    val condition: String,
-//    val description: String,
-//    val icon: String
-//)
+
+

@@ -54,8 +54,11 @@ class HomeViewModel @Inject constructor(
     val localWeatherDat = _localWeatherData.asStateFlow()
 
 
-    private val _hourlyWeather = MutableStateFlow<List<DomainForecastData>>(emptyList())
-    val hourlyWeather: StateFlow<List<DomainForecastData>> = _hourlyWeather
+    private val _forecastDomainData = MutableStateFlow<List<DomainForecastData>>(emptyList())
+    val forecastDomainData = _forecastDomainData.asStateFlow()
+
+
+
     private val _isLoading = MutableStateFlow(false)
     var isLoading: StateFlow<Boolean> = _isLoading
     private val _error = MutableStateFlow<String?>(null)
@@ -84,6 +87,8 @@ class HomeViewModel @Inject constructor(
                         apiKey = "2918d47481d7d0abd2195b35a3f64a1c"
                     )
 
+                    val list = weatherRepository.getHourlyWeather(data.cityName,"2918d47481d7d0abd2195b35a3f64a1c")
+
                     _aqiData.value = aqiData
 
 
@@ -109,47 +114,53 @@ class HomeViewModel @Inject constructor(
                                 icon = data.icon
                             )
                         )
+
+                        weatherDao.insertForecast(
+                            forecast = ForecastEntity(
+                                cityName = data.cityName,
+                                DaysData = list
+                            )
+                        )
+
                     }
 
-                    fetchForecastData(
-                        city = query, apiKey = "2918d47481d7d0abd2195b35a3f64a1c"
-                    )
 
-
-                    weatherDao.getWeatherByCity(query).collect { localData ->
+                    weatherDao.getWeatherByCity(data.cityName).collect { localData ->
                         _localWeatherData.value = localData
                     }
 
 
+
+
+
+
+
+                    getF(query)
+
+
+
                 }
+
+
+
+
         }
 
 
     }
 
+    suspend fun getF (city: String){
 
-    fun fetchForecastData(city: String, apiKey: String) {
-        viewModelScope.launch {
+        weatherDao.getForecast(city).collect {
 
-          
-            try {
-                val list = weatherRepository.getHourlyWeather(city, apiKey)
-                
-                _hourlyWeather.value = list
-                
-                weatherDao.insertForecast(
-                    forecast = ForecastEntity(
-                        cityName = city,
-                        DaysData = list
-                    )
-                )
-            } catch (e: Exception) {
-              
-            } finally {
+            _forecastDomainData.value = it?.DaysData!!
+            Log.d("HomeViewModel", "WeatherData updated: ${it?.DaysData}")
 
-            }
         }
     }
+
+
+
 
 
     private val _lickedCity = MutableStateFlow<List<WeatherEntity>>(emptyList())

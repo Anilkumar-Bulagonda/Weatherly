@@ -38,8 +38,12 @@ interface WeatherDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertForecast(forecast: ForecastEntity)
 
-    @Query("SELECT * FROM forecast_table WHERE cityName = :cityName")
-    suspend fun getForecast(cityName: String): ForecastEntity?
+    @Query("""
+    SELECT * FROM forecast_table
+    WHERE REPLACE(LOWER(cityName), ' ', '') LIKE '%' || REPLACE(LOWER(:city), ' ', '') || '%'
+    LIMIT 1
+""")
+    fun getForecast(city: String): Flow<ForecastEntity?>
 
 
 }
