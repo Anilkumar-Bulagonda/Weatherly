@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,8 +20,8 @@ import kotlinx.coroutines.tasks.await
 import uk.ac.tees.mad.weatherly.data.local.WeatherDao
 import uk.ac.tees.mad.weatherly.data.local.forcast.ForecastEntity
 import uk.ac.tees.mad.weatherly.data.local.weather.WeatherEntity
+import uk.ac.tees.mad.weatherly.data.mapper.toEntityList
 import uk.ac.tees.mad.weatherly.domain.model.DomainAqiData
-import uk.ac.tees.mad.weatherly.domain.model.DomainForecastData
 import uk.ac.tees.mad.weatherly.domain.model.DomainWeatherData
 import uk.ac.tees.mad.weatherly.domain.repository.NetworkConnectivityObserver
 import uk.ac.tees.mad.weatherly.domain.repository.WeatherRepository
@@ -54,15 +55,14 @@ class HomeViewModel @Inject constructor(
     val localWeatherDat = _localWeatherData.asStateFlow()
 
 
-    private val _forecastDomainData = MutableStateFlow<List<DomainForecastData>>(emptyList())
+    private val _forecastDomainData = MutableStateFlow<ForecastEntity?>(null)
     val forecastDomainData = _forecastDomainData.asStateFlow()
 
 
 
     private val _isLoading = MutableStateFlow(false)
     var isLoading: StateFlow<Boolean> = _isLoading
-    private val _error = MutableStateFlow<String?>(null)
-    val error: StateFlow<String?> = _error
+
 
     fun updateQuery(q: String) {
         _query.update {
@@ -73,7 +73,7 @@ class HomeViewModel @Inject constructor(
     }
 
     init {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             _query.filter { it.isNotBlank() }.distinctUntilChanged().debounce(100)
                 .collectLatest { query ->
 
@@ -118,7 +118,7 @@ class HomeViewModel @Inject constructor(
                         weatherDao.insertForecast(
                             forecast = ForecastEntity(
                                 cityName = data.cityName,
-                                DaysData = list
+                                DaysData = list.toEntityList()
                             )
                         )
 
@@ -149,14 +149,16 @@ class HomeViewModel @Inject constructor(
 
     }
 
-    suspend fun getF (city: String){
+     fun getF (city: String){
+         viewModelScope.launch {
+             weatherDao.getForecast(city).collect {
 
-        weatherDao.getForecast(city).collect {
+                 _forecastDomainData.value = it
+                 Log.d("HomeViewModel", "WeatherData updated: ${it?.DaysData}")
 
-            _forecastDomainData.value = it?.DaysData!!
-            Log.d("HomeViewModel", "WeatherData updated: ${it?.DaysData}")
+             }
+         }
 
-        }
     }
 
 

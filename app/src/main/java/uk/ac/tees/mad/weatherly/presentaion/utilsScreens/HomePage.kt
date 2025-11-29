@@ -54,6 +54,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -75,19 +76,22 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import uk.ac.tees.mad.careerconnect.presentation.auth.AuthViewModel
 import uk.ac.tees.mad.weatherly.R
-import uk.ac.tees.mad.weatherly.domain.model.DomainForecastData
+import uk.ac.tees.mad.weatherly.data.local.forcast.EntityForecastData
 import uk.ac.tees.mad.weatherly.domain.model.DomainWeatherData
 import uk.ac.tees.mad.weatherly.domain.repository.NetworkStatus
+import uk.ac.tees.mad.weatherly.presentaion.navigation.Routes
 import uk.ac.tees.mad.weatherly.presentaion.viewModels.HomeViewModel
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -100,6 +104,7 @@ fun HomePage(
     modifier: Modifier = Modifier,
     homeViewModel: HomeViewModel,
     authViewModel: AuthViewModel,
+    navController: NavController
 ) {
 
     val localWeatherData by homeViewModel.localWeatherDat.collectAsStateWithLifecycle()
@@ -124,7 +129,7 @@ fun HomePage(
         Color(0xFF98D8E8)
     )
 
-//    Network
+
     val context = LocalContext.current
 
     val netWorkState = homeViewModel.status.collectAsState()
@@ -398,22 +403,23 @@ fun HomePage(
                                 }
                             }
                         }
+                        homeViewModel.getF(weatherData.cityName)
 
+                        hourlyWeather?.let {
+                            LazyRow(
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                itemsIndexed(it.DaysData) { index, hourly ->
 
-                         LazyRow(
-                             horizontalArrangement = Arrangement.spacedBy(12.dp)
-                         ) {
-                             itemsIndexed(hourlyWeather) { index, hourly ->
+                                    Log.d("HomeViewModel", "WeatherData updated: ${hourly}")
 
-                                 Log.d("HomeViewModel", "WeatherData updated: ${hourly}")
-
-                                 val formatter = DateTimeFormatter.ofPattern("h a")
-                                 val time = currentTime.plusHours(index.toLong())
-                                 val formattedTime = time.format(formatter)
-                                 HourlyForecastItem(hourly, time = formattedTime)
-                             }
-                         }
-
+                                    val formatter = DateTimeFormatter.ofPattern("h a")
+                                    val time = currentTime.plusHours(index.toLong())
+                                    val formattedTime = time.format(formatter)
+                                    HourlyForecastItem(hourly, time = formattedTime)
+                                }
+                            }
+                        }
 
 
                     }
@@ -461,11 +467,11 @@ fun HomePage(
                     icon = "",
                 )
                 val sampleHourlyData = listOf(
-                    DomainForecastData("12:00", 23.0, "Clear", "clear sky", "01d"),
-                    DomainForecastData("13:00", 24.5, "Partly Cloudy", "few clouds", "02d"),
-                    DomainForecastData("14:00", 25.0, "Cloudy", "scattered clouds", "03d"),
-                    DomainForecastData("15:00", 24.0, "Rain", "light rain", "10d"),
-                    DomainForecastData("16:00", 22.5, "Clear", "clear sky", "01d")
+                    EntityForecastData("12:00", 23.0, "Clear", "clear sky", "01d"),
+                    EntityForecastData("13:00", 24.5, "Partly Cloudy", "few clouds", "02d"),
+                    EntityForecastData("14:00", 25.0, "Cloudy", "scattered clouds", "03d"),
+                    EntityForecastData("15:00", 24.0, "Rain", "light rain", "10d"),
+                    EntityForecastData("16:00", 22.5, "Clear", "clear sky", "01d")
                 )
                 Card(
                     modifier = Modifier
@@ -634,10 +640,23 @@ fun HomePage(
                     }
                 }
 
+                TextButton(
+                    onClick = { navController.navigate(Routes.ForecastScreen("London")) },
+                    contentPadding = PaddingValues(0.dp)
+                ) {
+                    Text(
+                        text = "Weather Forecast",
+                        color = Color(0xFF6AC1FA),
+                        fontWeight = FontWeight.Bold,
+                        textDecoration = TextDecoration.Underline
+                    )
+                }
+
             }
 
 
         }
+
 
 
     }
@@ -645,7 +664,7 @@ fun HomePage(
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun HourlyForecastItem(hourly: DomainForecastData, time: String) {
+fun HourlyForecastItem(hourly: EntityForecastData, time: String) {
     Card(
         modifier = Modifier
             .width(80.dp)

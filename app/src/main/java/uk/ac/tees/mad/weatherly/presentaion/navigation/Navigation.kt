@@ -1,9 +1,9 @@
 package uk.ac.tees.mad.weatherly.presentaion.navigation
 
+
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.internal.isLiveLiteralsEnabled
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -11,14 +11,13 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.toRoute
 import com.google.firebase.auth.FirebaseAuth
 import uk.ac.tees.mad.careerconnect.presentation.auth.AuthViewModel
 import uk.ac.tees.mad.weatherly.presentaion.AuthScreens.AuthScreen
 import uk.ac.tees.mad.weatherly.presentaion.AuthScreens.LoginScreen
-
-
 import uk.ac.tees.mad.weatherly.presentaion.AuthScreens.SignUpScreen
-
+import uk.ac.tees.mad.weatherly.presentaion.HomeScreen.ForecastChartUI
 import uk.ac.tees.mad.weatherly.presentaion.HomeScreen.HomeScreen
 import uk.ac.tees.mad.weatherly.presentaion.viewModels.HomeViewModel
 
@@ -91,6 +90,12 @@ fun Navigation(
                 authViewModel = authViewModel,
                 navController = navController
             )
+
+        }
+
+        composable<Routes.ForecastScreen> {
+            val toRoute = it.toRoute<Routes.ForecastScreen>()
+            ForecastChartUI(city = toRoute.city, homeViewModel)
 
         }
 

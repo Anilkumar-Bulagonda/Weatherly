@@ -16,6 +16,8 @@ sealed class Routes {
 
     @Serializable
     data object HomeScreen
+    @Serializable
+    data class ForecastScreen(val city: String)
 
 
 

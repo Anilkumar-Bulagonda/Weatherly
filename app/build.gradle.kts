@@ -118,5 +118,7 @@ dependencies {
     implementation("io.ktor:ktor-client-cio:2.3.4")
     implementation("com.google.firebase:firebase-messaging:24.0.0")
 
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+
 
 }

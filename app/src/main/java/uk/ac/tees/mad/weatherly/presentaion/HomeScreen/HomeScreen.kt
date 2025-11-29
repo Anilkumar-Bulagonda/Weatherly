@@ -138,7 +138,8 @@ fun ContentScreen(
 
             1 -> HomePage(
                 homeViewModel = homeViewModel,
-                authViewModel = authViewModel
+                authViewModel = authViewModel,
+                navController = navController
             )
 
 
