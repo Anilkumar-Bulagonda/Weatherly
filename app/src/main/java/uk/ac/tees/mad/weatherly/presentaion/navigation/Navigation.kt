@@ -1,6 +1,8 @@
 package uk.ac.tees.mad.weatherly.presentaion.navigation
 
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -21,6 +23,7 @@ import uk.ac.tees.mad.weatherly.presentaion.HomeScreen.ForecastChartUI
 import uk.ac.tees.mad.weatherly.presentaion.HomeScreen.HomeScreen
 import uk.ac.tees.mad.weatherly.presentaion.viewModels.HomeViewModel
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun Navigation(
     modifier: Modifier = Modifier,
@@ -73,12 +76,13 @@ fun Navigation(
 
         composable<Routes.HomeScreen> {
 
-
+            val toRoute = it.toRoute<Routes.HomeScreen>()
             HomeScreen(
 
                 homeViewModel = homeViewModel,
                 authViewModel = authViewModel,
-                navController = navController
+                navController = navController,
+                city = nul
             )
 
         }

@@ -10,7 +10,7 @@ interface AirPollutionApi {
     suspend fun getAirQuality(
         @Query("lat") lat: Double,
         @Query("lon") lon: Double,
-        @Query("appid") apiKey: String
+        @Query("appid") apiKey: String,
     ): AirQualityResponse
 }
 

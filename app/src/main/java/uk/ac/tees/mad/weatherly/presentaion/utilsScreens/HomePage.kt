@@ -54,7 +54,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -65,6 +64,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
@@ -104,7 +104,8 @@ fun HomePage(
     modifier: Modifier = Modifier,
     homeViewModel: HomeViewModel,
     authViewModel: AuthViewModel,
-    navController: NavController
+    navController: NavController,
+    city:String?=null
 ) {
 
     val localWeatherData by homeViewModel.localWeatherDat.collectAsStateWithLifecycle()
@@ -112,10 +113,19 @@ fun HomePage(
     val aqiData by homeViewModel.aqiData.collectAsState()
     var isRefreshing by remember { mutableStateOf(false) }
 
-    val refreshState = rememberPullToRefreshState()
-    val isLoading by homeViewModel.isLoading.collectAsState()
+    LaunchedEffect(Unit) {
+        if (city != null)
+        homeViewModel.updateQuery(city)
 
-    var searchQuery by remember { mutableStateOf("") }
+    }
+
+    val refreshState = rememberPullToRefreshState()
+
+    val searching by homeViewModel.onSearch.collectAsState()
+
+
+    var query by remember { mutableStateOf("") }
+
     val currentTime = LocalTime.now()
 
 
@@ -132,8 +142,11 @@ fun HomePage(
 
     val context = LocalContext.current
 
-    val netWorkState = homeViewModel.status.collectAsState()
+
+
     val isNetworkAvailable = homeViewModel.status.collectAsState().value == NetworkStatus.Connected
+
+
 
 
 
@@ -149,7 +162,7 @@ fun HomePage(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            var query by remember { mutableStateOf("") }
+
 
             LaunchedEffect(Unit) {
                 delay(500)
@@ -167,7 +180,6 @@ fun HomePage(
                 query = query,
                 onQueryChange = {
                     query = it
-                    searchQuery = it
                     homeViewModel.updateQuery(query)
                 },
                 onSearch = {
@@ -378,7 +390,7 @@ fun HomePage(
                                     text = "Details",
                                     style = MaterialTheme.typography.titleLarge,
                                     fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.padding(bottom = 16.dp), color = Color.Black
+                                    modifier = Modifier.padding(bottom = 5.dp), color = Color.Black
                                 )
 
                                 Row(
@@ -390,11 +402,13 @@ fun HomePage(
                                         label = "Humidity",
                                         value = "${weatherData.humidity}%"
                                     )
+                                    Spacer(modifier = Modifier.width(10.dp))
                                     WeatherDetailItem(
                                         icon = Icons.Default.Compress,
                                         label = "Pressure",
                                         value = "${weatherData.pressure} hPa"
                                     )
+                                    Spacer(modifier = Modifier.width(10.dp))
                                     WeatherDetailItem(
                                         icon = Icons.Default.Air,
                                         label = "AQI",
@@ -419,6 +433,32 @@ fun HomePage(
                                     HourlyForecastItem(hourly, time = formattedTime)
                                 }
                             }
+                        }
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth().clip(RoundedCornerShape(24.dp))
+                                .clickable {
+                                    navController.navigate(Routes.ForecastScreen("London"))
+                                }
+                                .padding(start = 24.dp, top = 8.dp, bottom = 8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Cloud,
+                                contentDescription = "Forecast Icon",
+                                tint = Color(0xFF32ABFF),
+                                modifier = Modifier.size(20.dp)
+                            )
+
+                            Spacer(modifier = Modifier.width(8.dp))
+
+                            Text(
+                                text = "Weather Forecast",
+                                color = Color(0xFF32ABFF),
+                                fontWeight = FontWeight.Bold,
+                                textDecoration = TextDecoration.Underline
+                            )
                         }
 
 
@@ -448,6 +488,9 @@ fun HomePage(
                             tint = Color.Black
                         )
                     }
+
+
+
 
                 }
 
@@ -613,11 +656,13 @@ fun HomePage(
                                 label = "Humidity",
                                 value = "${sampleWeatherData.humidity}%"
                             )
+                            Spacer(modifier = Modifier.width(10.dp))
                             WeatherDetailItem(
                                 icon = Icons.Default.Compress,
                                 label = "Pressure",
                                 value = "${sampleWeatherData.pressure} hPa"
                             )
+                            Spacer(modifier = Modifier.width(10.dp))
                             WeatherDetailItem(
                                 icon = Icons.Default.Air,
                                 label = "AQI",
@@ -640,17 +685,7 @@ fun HomePage(
                     }
                 }
 
-                TextButton(
-                    onClick = { navController.navigate(Routes.ForecastScreen("London")) },
-                    contentPadding = PaddingValues(0.dp)
-                ) {
-                    Text(
-                        text = "Weather Forecast",
-                        color = Color(0xFF6AC1FA),
-                        fontWeight = FontWeight.Bold,
-                        textDecoration = TextDecoration.Underline
-                    )
-                }
+
 
             }
 
@@ -727,6 +762,14 @@ fun WeatherDetailItem(
     label: String,
     value: String,
 ) {
+
+    val iconColor = when (label) {
+        "Humidity" -> Color(0xFF2196F3)
+        "Pressure" -> Color(0xFF4CAF50)
+        "AQI" -> Color(0xFFFF9800)
+        else -> Color.Black
+    }
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.padding(8.dp)
@@ -735,7 +778,7 @@ fun WeatherDetailItem(
             imageVector = icon,
             contentDescription = label,
             modifier = Modifier.size(24.dp),
-            tint = Color.Black  // Dark icon tint
+            tint = iconColor
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(

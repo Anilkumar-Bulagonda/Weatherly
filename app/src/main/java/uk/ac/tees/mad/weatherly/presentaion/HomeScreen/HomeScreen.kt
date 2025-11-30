@@ -25,6 +25,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
@@ -37,12 +38,13 @@ import uk.ac.tees.mad.weatherly.presentaion.utilsScreens.HomePage
 import uk.ac.tees.mad.weatherly.presentaion.utilsScreens.ProfilePage
 import uk.ac.tees.mad.weatherly.presentaion.viewModels.HomeViewModel
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
     authViewModel: AuthViewModel,
     navController: NavController,
-    homeViewModel: HomeViewModel,
+    homeViewModel: HomeViewModel,city: String? =null,
 ) {
 
     val navItems = listOf(
@@ -83,7 +85,7 @@ fun HomeScreen(
                         Icon(
                             imageVector = if (isSelected) navItem.filledIcon else navItem.outlinedIcon,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.background
+                            tint = Color(0xFF000000)
 
                         )
                     },
@@ -91,7 +93,7 @@ fun HomeScreen(
                         Text(
                             text = navItem.title,
                             modifier = Modifier.offset(y = (-4).dp),
-                            color = MaterialTheme.colorScheme.background
+                            color = Color(0xFF000000)
                         )
                     }
                 )
@@ -104,7 +106,8 @@ fun HomeScreen(
             navController = navController,
             authViewModel = authViewModel,
             homeViewModel = homeViewModel,
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier.padding(innerPadding),
+            city = city
         )
 
     }
@@ -117,6 +120,7 @@ data class NavItems(val title: String, val filledIcon: ImageVector, val outlined
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ContentScreen(
+    city: String? =null,
     selectedIndex: Int,
     navController: NavController,
     authViewModel: AuthViewModel,
@@ -139,7 +143,8 @@ fun ContentScreen(
             1 -> HomePage(
                 homeViewModel = homeViewModel,
                 authViewModel = authViewModel,
-                navController = navController
+                navController = navController,
+                city = city
             )
 
 

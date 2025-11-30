@@ -63,6 +63,9 @@ class HomeViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     var isLoading: StateFlow<Boolean> = _isLoading
 
+    private val _onSearch = MutableStateFlow(false)
+    var onSearch: StateFlow<Boolean> = _onSearch
+
 
     fun updateQuery(q: String) {
         _query.update {
@@ -74,8 +77,11 @@ class HomeViewModel @Inject constructor(
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
+            _onSearch.value = true
             _query.filter { it.isNotBlank() }.distinctUntilChanged().debounce(100)
                 .collectLatest { query ->
+
+
 
                     val data = weatherRepository.getWeather(
                         city = query, apiKey = "2918d47481d7d0abd2195b35a3f64a1c"
@@ -143,7 +149,7 @@ class HomeViewModel @Inject constructor(
 
 
 
-
+            _onSearch.value = false
         }
 
 
