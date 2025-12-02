@@ -105,19 +105,13 @@ fun HomePage(
     homeViewModel: HomeViewModel,
     authViewModel: AuthViewModel,
     navController: NavController,
-    city:String?=null
+
 ) {
 
     val localWeatherData by homeViewModel.localWeatherDat.collectAsStateWithLifecycle()
     val hourlyWeather by homeViewModel.forecastDomainData.collectAsState()
     val aqiData by homeViewModel.aqiData.collectAsState()
     var isRefreshing by remember { mutableStateOf(false) }
-
-    LaunchedEffect(Unit) {
-        if (city != null)
-        homeViewModel.updateQuery(city)
-
-    }
 
     val refreshState = rememberPullToRefreshState()
 
@@ -440,7 +434,7 @@ fun HomePage(
                             modifier = Modifier
                                 .fillMaxWidth().clip(RoundedCornerShape(24.dp))
                                 .clickable {
-                                    navController.navigate(Routes.ForecastScreen("London"))
+                                    navController.navigate(Routes.ForecastScreen(weatherData.cityName))
                                 }
                                 .padding(start = 24.dp, top = 8.dp, bottom = 8.dp)
                         ) {

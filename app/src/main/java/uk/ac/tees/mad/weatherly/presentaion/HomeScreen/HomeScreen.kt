@@ -44,7 +44,7 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     authViewModel: AuthViewModel,
     navController: NavController,
-    homeViewModel: HomeViewModel,city: String? =null,
+    homeViewModel: HomeViewModel,
 ) {
 
     val navItems = listOf(
@@ -107,7 +107,7 @@ fun HomeScreen(
             authViewModel = authViewModel,
             homeViewModel = homeViewModel,
             modifier = Modifier.padding(innerPadding),
-            city = city
+
         )
 
     }
@@ -120,7 +120,7 @@ data class NavItems(val title: String, val filledIcon: ImageVector, val outlined
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ContentScreen(
-    city: String? =null,
+
     selectedIndex: Int,
     navController: NavController,
     authViewModel: AuthViewModel,
@@ -134,7 +134,8 @@ fun ContentScreen(
             0 -> {
                 FavPage(
                     homeViewModel = homeViewModel,
-                    authViewModel = authViewModel
+                    authViewModel = authViewModel,
+                    navController = navController
                 )
 
 
@@ -144,7 +145,7 @@ fun ContentScreen(
                 homeViewModel = homeViewModel,
                 authViewModel = authViewModel,
                 navController = navController,
-                city = city
+
             )
 
 
