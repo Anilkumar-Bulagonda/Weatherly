@@ -76,13 +76,11 @@ fun Navigation(
 
         composable<Routes.HomeScreen> {
 
-            val toRoute = it.toRoute<Routes.HomeScreen>()
-            HomeScreen(
 
+            HomeScreen(
                 homeViewModel = homeViewModel,
                 authViewModel = authViewModel,
                 navController = navController,
-                city = nul
             )
 
         }

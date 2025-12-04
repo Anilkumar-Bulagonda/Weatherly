@@ -1,6 +1,7 @@
 package uk.ac.tees.mad.weatherly.presentaion.utilsScreens
 
 import android.widget.Toast
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -52,9 +53,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import uk.ac.tees.mad.careerconnect.presentation.auth.AuthViewModel
 import uk.ac.tees.mad.weatherly.R
 import uk.ac.tees.mad.weatherly.data.local.weather.WeatherEntity
+import uk.ac.tees.mad.weatherly.presentaion.navigation.Routes
 import uk.ac.tees.mad.weatherly.presentaion.viewModels.HomeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -63,6 +66,7 @@ fun FavPage(
     modifier: Modifier = Modifier,
     homeViewModel: HomeViewModel,
     authViewModel: AuthViewModel,
+    navController: NavController
 ) {
     val likedCities by homeViewModel.lickedCity.collectAsState()
 
@@ -154,6 +158,11 @@ fun FavPage(
                                 })
 
                             },
+
+                            onClick = {
+                                homeViewModel.updateQuery(it)
+                                navController.navigate(Routes.HomeScreen)
+                            },
                         )
                     }
                     item(1) {
@@ -172,10 +181,14 @@ fun WeatherCard(
     weatherEntity: WeatherEntity,
     modifier: Modifier = Modifier,
     onDelete: (city: String) -> Unit,
+    onClick: (city: String) -> Unit,
 ) {
     Card(
         modifier = modifier
-            .fillMaxWidth()
+            .fillMaxWidth().clickable{
+
+                onClick(weatherEntity.cityName)
+            }
             .clip(RoundedCornerShape(12.dp)),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {

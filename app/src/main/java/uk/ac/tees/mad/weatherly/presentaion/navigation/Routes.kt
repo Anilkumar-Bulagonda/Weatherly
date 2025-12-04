@@ -15,10 +15,8 @@ sealed class Routes {
     data object LogInScreen
 
     @Serializable
-    data class HomeScreen(val city: String)
+    data object HomeScreen
     @Serializable
     data class ForecastScreen(val city: String)
-
-
 
 }
