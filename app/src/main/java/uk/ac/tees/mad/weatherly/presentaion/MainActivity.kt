@@ -50,8 +50,10 @@ class MainActivity : ComponentActivity() {
 
         super.onCreate(savedInstanceState)
 
+
         installSplashScreen()
         enableEdgeToEdge()
+
 
 
         setContent {
@@ -59,6 +61,7 @@ class MainActivity : ComponentActivity() {
             val homeViewModel: HomeViewModel = hiltViewModel()
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+
                 if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
                     != PackageManager.PERMISSION_GRANTED) {
                     ActivityCompat.requestPermissions(
@@ -67,6 +70,7 @@ class MainActivity : ComponentActivity() {
                         101
                     )
                 }
+
             }
 
 

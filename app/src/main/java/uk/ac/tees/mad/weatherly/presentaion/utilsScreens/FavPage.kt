@@ -75,6 +75,7 @@ fun FavPage(
 
     var isLoading = homeViewModel.isLoading.collectAsState().value
 
+
     LaunchedEffect(Unit) {
 
         homeViewModel.getLickedCity()

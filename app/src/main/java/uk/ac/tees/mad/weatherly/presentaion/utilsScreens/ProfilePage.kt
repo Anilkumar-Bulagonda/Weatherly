@@ -2,10 +2,12 @@ package uk.ac.tees.mad.weatherly.presentaion.utilsScreens
 
 import android.app.Activity
 import android.content.ContentResolver
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
+import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -30,10 +32,15 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -41,6 +48,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -63,6 +71,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.NotificationManagerCompat
 import coil3.compose.AsyncImage
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
@@ -72,6 +81,7 @@ import coil3.request.crossfade
 import uk.ac.tees.mad.careerconnect.presentation.auth.AuthViewModel
 import uk.ac.tees.mad.weatherly.R
 import uk.ac.tees.mad.weatherly.converter.uriToByteArray
+import uk.ac.tees.mad.weatherly.presentaion.viewModels.HomeViewModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -79,6 +89,7 @@ import uk.ac.tees.mad.weatherly.converter.uriToByteArray
 fun ProfilePage(
     modifier: Modifier = Modifier,
     authViewModel: AuthViewModel,
+    homeViewModel: HomeViewModel,
 
     ) {
     val context = LocalContext.current
@@ -136,6 +147,19 @@ fun ProfilePage(
             }
         })
 
+    var expanded by rememberSaveable { mutableStateOf(false) }
+
+    var showDialogUnites by rememberSaveable { mutableStateOf(false) }
+
+    var showDialogLogout by rememberSaveable { mutableStateOf(false) }
+
+    var showDialogClearCache by rememberSaveable { mutableStateOf(false) }
+
+    var showDialogNotification by rememberSaveable { mutableStateOf(false) }
+
+
+    var isNotificationEnabled = isAppNotificationEnabled(context)
+
 
     Scaffold(
         topBar = {
@@ -144,12 +168,171 @@ fun ProfilePage(
                     Text(
                         "Profile", color = MaterialTheme.colorScheme.background, fontSize = 22.sp
                     )
+
+                },
+                actions = @Composable {
+                    Box {
+                        IconButton(onClick = { expanded = !expanded }) {
+                            Icon(
+                                imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.Settings,
+                                contentDescription = "Settings",
+                                tint = Color.Black
+                            )
+                        }
+
+                        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+
+                            DropdownMenuItem(text = { Text("App Notifications") }, onClick = {
+
+                                showDialogNotification = true
+                            })
+                            DropdownMenuItem(text = { Text("Clear Cache") }, onClick = {
+
+                                showDialogClearCache = true
+                            })
+                            DropdownMenuItem(text = { Text("LogOut") }, onClick = {
+
+
+                                showDialogLogout = true
+
+                            }
+                            )
+                        }
+                    }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = colorResource(id = R.color.app))
             )
         }) { innerPadding ->
 
         Box(modifier = Modifier.padding(innerPadding)) {
+
+
+            if (showDialogLogout) {
+                AlertDialog(
+                    onDismissRequest = {
+                        expanded = false
+                        showDialogLogout = false
+                    },
+                    title = { Text("Logout") },
+                    text = { Text("Are you sure you want to log out?") },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            authViewModel.logoutUser()
+                            expanded = false
+                        }) {
+                            Text("Yes")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = {
+
+                            expanded = false
+                            showDialogLogout = false
+
+                        }) {
+                            Text("No")
+                        }
+                    })
+            }
+
+
+
+            var isDeleting by rememberSaveable { mutableStateOf(false) }
+
+            if (showDialogClearCache) {
+                AlertDialog(
+                    onDismissRequest = {
+                        if (!isDeleting) {
+                            expanded = false
+                            showDialogClearCache = false
+                        }
+                    },
+                    title = { Text("Clear Cache") },
+                    text = {
+                        if (isDeleting) {
+
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                                Text("Clearing cache, please wait...")
+                            }
+                        } else {
+                            Text("Are you sure you want to clear the app cache? This action cannot be undone.")
+                        }
+                    },
+                    confirmButton = {
+                        if (!isDeleting) {
+                            TextButton(onClick = {
+                                isDeleting = true
+
+                                homeViewModel.clearAppDataSafely { success, message ->
+                                    isDeleting = false
+                                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                                    expanded = false
+                                    showDialogClearCache = false
+                                }
+                            }) {
+                                Text("Yes")
+                            }
+                        }
+                    },
+                    dismissButton = {
+                        if (!isDeleting) {
+                            TextButton(onClick = {
+                                expanded = false
+                                showDialogClearCache = false
+                            }) {
+                                Text("No")
+                            }
+                        }
+                    }
+                )
+            }
+
+
+            if (showDialogNotification) {
+
+                var isNotificationEnabled = isAppNotificationEnabled(context)
+
+                AlertDialog(onDismissRequest = {
+                    expanded = false
+                    showDialogNotification = false
+                }, title = { Text("Notifications") }, text = {
+                    Text(
+                        if (isNotificationEnabled) "Notifications is currently ON. Do you want to turn them OFF?"
+                        else "Notifications is currently OFF. Do you want to turn them ON?"
+                    )
+                }, confirmButton = {
+                    TextButton(onClick = {
+
+                        val intent = Intent().apply {
+                            action = Settings.ACTION_APP_NOTIFICATION_SETTINGS
+                            putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                        }
+                        context.startActivity(intent)
+                        showDialogNotification = false
+                        expanded = false
+                        isNotificationEnabled = isAppNotificationEnabled(context)
+
+                    }) {
+                        Text(if (isNotificationEnabled) "Turn Off" else "Turn On")
+                    }
+                }, dismissButton = {
+                    TextButton(onClick = {
+                        expanded = false
+                        showDialogNotification = false
+                    }) {
+                        Text("No")
+                    }
+                })
+            }
+
+
+
+
+
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -343,7 +526,7 @@ fun ProfilePage(
                                                     Toast.makeText(
                                                         context, message, Toast.LENGTH_SHORT
                                                     ).show()
-                                                    updateState = ! updateState
+                                                    updateState = !updateState
                                                     isEditing = false
 
                                                 } else {
@@ -354,8 +537,7 @@ fun ProfilePage(
                                                     ).show()
                                                 }
 
-                                            }
-                                        )
+                                            })
                                     }
 
 
@@ -443,5 +625,37 @@ fun ProfilePage(
 
 
 }
+
+fun isAppNotificationEnabled(context: Context): Boolean {
+    return NotificationManagerCompat.from(context).areNotificationsEnabled()
+}
+
+@Composable
+fun LogoutAlertDialog(
+    showDialog: Boolean,
+    onDismiss: () -> Unit,
+    onConfirmLogout: () -> Unit,
+) {
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text("Logout") },
+            text = { Text("Are you sure you want to log out?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    onConfirmLogout()
+                    onDismiss()
+                }) {
+                    Text("Yes")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismiss) {
+                    Text("No")
+                }
+            })
+    }
+}
+
 
 

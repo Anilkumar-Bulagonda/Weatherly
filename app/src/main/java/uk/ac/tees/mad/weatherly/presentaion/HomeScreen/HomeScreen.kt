@@ -151,6 +151,7 @@ fun ContentScreen(
 
             2 -> ProfilePage(
                 authViewModel = authViewModel,
+                homeViewModel = homeViewModel
 
 
 

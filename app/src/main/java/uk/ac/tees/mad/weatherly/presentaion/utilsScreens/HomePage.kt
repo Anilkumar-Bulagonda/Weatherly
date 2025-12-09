@@ -23,7 +23,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AcUnit
 import androidx.compose.material.icons.filled.Add
@@ -46,6 +48,7 @@ import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -54,13 +57,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -106,18 +109,11 @@ fun HomePage(
     authViewModel: AuthViewModel,
     navController: NavController,
 
-) {
+    ) {
 
     val localWeatherData by homeViewModel.localWeatherDat.collectAsStateWithLifecycle()
     val hourlyWeather by homeViewModel.forecastDomainData.collectAsState()
     val aqiData by homeViewModel.aqiData.collectAsState()
-    var isRefreshing by remember { mutableStateOf(false) }
-
-    val refreshState = rememberPullToRefreshState()
-
-    val searching by homeViewModel.onSearch.collectAsState()
-
-
     var query by remember { mutableStateOf("") }
 
     val currentTime = LocalTime.now()
@@ -127,6 +123,8 @@ fun HomePage(
     val keyboardController = LocalSoftwareKeyboardController.current
     var isSugsetionVisible by remember { mutableStateOf(false) }
     val focusRequester = remember { FocusRequester() }
+    var onSearch = homeViewModel.onSearch.collectAsState().value
+    var onErron = homeViewModel.onError.collectAsState().value
 
     val gradientColors = listOf(
         Color(0xFF87CEEB),
@@ -137,14 +135,18 @@ fun HomePage(
     val context = LocalContext.current
 
 
-
     val isNetworkAvailable = homeViewModel.status.collectAsState().value == NetworkStatus.Connected
 
+    var isRefreshing by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
+    LaunchedEffect(Unit) {
+        delay(500)
+        focusRequester.requestFocus()
 
+    }
 
-
-
+    val scrollState = rememberScrollState()
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -152,17 +154,13 @@ fun HomePage(
 
         ) {
         Column(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally
+
         ) {
 
-
-
-            LaunchedEffect(Unit) {
-                delay(500)
-                focusRequester.requestFocus()
-
-            }
 
             SearchBar(
                 modifier = Modifier
@@ -286,17 +284,58 @@ fun HomePage(
 
                                 Row(
                                     horizontalArrangement = Arrangement.End,
+                                    verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(bottom = 16.dp, end = 16.dp)
                                 ) {
-                                    Text(
-                                        text = weatherData.cityName,
-                                        style = MaterialTheme.typography.headlineSmall,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 24.sp,
-                                        color = Color.Black.copy(alpha = 0.8f)
-                                    )
+                                    when {
+                                        onSearch -> {
+
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                                modifier = Modifier.padding(8.dp)
+                                            ) {
+                                                CircularProgressIndicator(
+                                                    color = Color.Black,
+                                                    strokeWidth = 2.dp,
+                                                    modifier = Modifier.size(24.dp)
+                                                )
+                                                Text(
+                                                    text = "Searching...",
+                                                    style = MaterialTheme.typography.headlineSmall,
+                                                    fontWeight = FontWeight.Bold,
+                                                    fontSize = 22.sp,
+                                                    color = Color.Black.copy(alpha = 0.8f)
+                                                )
+                                            }
+                                        }
+
+                                        weatherData.cityName.isNullOrBlank() -> {
+
+                                            Text(
+                                                text = "No city selected",
+                                                style = MaterialTheme.typography.headlineSmall,
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 22.sp,
+                                                color = Color.Black.copy(alpha = 0.8f)
+                                            )
+                                        }
+
+                                        else -> {
+
+                                            Text(
+                                                text = weatherData.cityName,
+                                                style = MaterialTheme.typography.headlineSmall,
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 24.sp,
+                                                color = Color.Black
+                                            )
+                                        }
+                                    }
+
+
                                 }
                                 val (icon, tint) = when (weatherData.icon) {
                                     "01d", "01n" -> Icons.Default.WbSunny to Color(0xFFFFD700)
@@ -432,7 +471,8 @@ fun HomePage(
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
-                                .fillMaxWidth().clip(RoundedCornerShape(24.dp))
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(24.dp))
                                 .clickable {
                                     navController.navigate(Routes.ForecastScreen(weatherData.cityName))
                                 }
@@ -482,8 +522,6 @@ fun HomePage(
                             tint = Color.Black
                         )
                     }
-
-
 
 
                 }
@@ -636,7 +674,7 @@ fun HomePage(
                             text = "Details",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
-                            color = Color.Black,  // Add this to make the text black
+                            color = Color.Black,
                             modifier = Modifier.padding(bottom = 16.dp),
 
                             )
@@ -680,12 +718,10 @@ fun HomePage(
                 }
 
 
-
             }
 
 
         }
-
 
 
     }

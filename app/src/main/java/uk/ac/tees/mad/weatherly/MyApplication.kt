@@ -14,26 +14,58 @@ import dagger.hilt.android.HiltAndroidApp
 import java.util.Calendar
 
 @HiltAndroidApp
-class MyApplication: Application() {
-
+class MyApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
         scheduleDailyNotification()
+//        showTestNotificationNow(
+//            context = this
+//        )
+
     }
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 "daily_channel",
-                "Daily Notifications",
+                "Daily Weather Updates",
                 NotificationManager.IMPORTANCE_DEFAULT
-            )
-            channel.description = "Sends notification every day at 8 PM"
+            ).apply {
+                description = "Sends a fun weather update every day at 8 PM"
+            }
             val manager = getSystemService(NotificationManager::class.java)
             manager.createNotificationChannel(channel)
         }
+    }
+
+
+    fun showTestNotificationNow(context: Context) {
+        val notificationManager =
+            context.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+
+        val fakeWeatherUpdates = listOf(
+            "Today's forecast: Sunny skies and warm vibes!",
+            "Looks like some rain is on the way — grab your umbrella!",
+            "Cloudy morning turning into a bright afternoon.",
+            "Thunderstorms tonight — stay cozy indoors!",
+            "Fog rolling in — drive safe out there!",
+            "Light drizzle expected with cool winds.",
+            "A chilly day ahead — perfect for a hot drink!"
+        )
+
+        val randomUpdate = fakeWeatherUpdates.random()
+
+        val builder = NotificationCompat.Builder(context, "daily_channel")
+            .setSmallIcon(R.mipmap.ic_launcher_round)
+            .setContentTitle("Weather Test Notification")
+            .setContentText(randomUpdate)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setAutoCancel(true)
+
+        val notificationId = System.currentTimeMillis().toInt() // unique ID
+        notificationManager.notify(notificationId, builder.build())
     }
 
     private fun scheduleDailyNotification() {
@@ -48,17 +80,15 @@ class MyApplication: Application() {
 
         val calendar = Calendar.getInstance().apply {
             timeInMillis = System.currentTimeMillis()
-            set(Calendar.HOUR_OF_DAY, 20) // 8 PM
+            set(Calendar.HOUR_OF_DAY, 8)
             set(Calendar.MINUTE, 0)
             set(Calendar.SECOND, 0)
-
 
             if (before(Calendar.getInstance())) {
                 add(Calendar.DATE, 1)
             }
         }
 
-        // Set repeating alarm
         alarmManager.setRepeating(
             AlarmManager.RTC_WAKEUP,
             calendar.timeInMillis,
@@ -66,6 +96,8 @@ class MyApplication: Application() {
             pendingIntent
         )
     }
+
+
 
 }
 
@@ -76,13 +108,27 @@ class NotificationReceiver : BroadcastReceiver() {
         val notificationManager =
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        val builder = NotificationCompat.Builder(context, "daily channel")
-            .setSmallIcon(R.drawable.sp )
-            .setContentTitle("Daily Reminder")
-            .setContentText("")
+        val fakeWeatherUpdates = listOf(
+            " Today's forecast: Sunny skies and warm vibes!",
+            " Looks like some rain is on the way — grab your umbrella!",
+            " Cloudy morning turning into a bright afternoon.",
+            " Thunderstorms tonight — stay cozy indoors!",
+            " Fog rolling in — drive safe out there!",
+            " Light drizzle expected with cool winds.",
+            " A chilly day ahead — perfect for a hot drink!"
+        )
+
+        val randomUpdate = fakeWeatherUpdates.random()
+
+        val builder = NotificationCompat.Builder(context, "daily_channel")
+            .setSmallIcon(R.drawable.sp)
+            .setContentTitle("Daily Weather Update")
+            .setContentText(randomUpdate)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
 
         notificationManager.notify(1001, builder.build())
     }
 }
+
+

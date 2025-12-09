@@ -1,41 +1,41 @@
 {
   "project_info": {
-    "project_number": "745490922487",
-    "project_id": "weatherly-46baf",
-    "storage_bucket": "weatherly-46baf.firebasestorage.app"
+    "project_number": "794392937904",
+    "project_id": "weatherly-ced7b",
+    "storage_bucket": "weatherly-ced7b.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:745490922487:android:5bdca2be5e90e7eb014cf2",
+        "mobilesdk_app_id": "1:794392937904:android:effb12de94215872968275",
         "android_client_info": {
           "package_name": "uk.ac.tees.mad.weatherly"
         }
       },
       "oauth_client": [
         {
-          "client_id": "745490922487-val7osf7g75vgvs9omma8vrrembmtm0a.apps.googleusercontent.com",
+          "client_id": "794392937904-tqc5kmt994bvmjrl5csnbu295d38pkcq.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "uk.ac.tees.mad.weatherly",
-            "certificate_hash": "aa9b2fef4575569bd5c36c45235f8f2b2dc452cd"
+            "certificate_hash": "083a5a6bd2cc92e226064bbf34318c0ab0f9ad51"
           }
         },
         {
-          "client_id": "745490922487-23veqpd9ubdep99h7q97j5llda4l02ai.apps.googleusercontent.com",
+          "client_id": "794392937904-md13qco5sbihcv7vdor5efu1001o1gq0.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyDOEBh0NkfdCrfyadw7iQ1zEoqitKA4mCA"
+          "current_key": "AIzaSyA_52nhoHRbIbur16SsPFWbdiH5_8Q_AGk"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "745490922487-23veqpd9ubdep99h7q97j5llda4l02ai.apps.googleusercontent.com",
+              "client_id": "794392937904-md13qco5sbihcv7vdor5efu1001o1gq0.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

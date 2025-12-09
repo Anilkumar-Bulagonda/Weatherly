@@ -1,7 +1,6 @@
 package uk.ac.tees.mad.careerconnect.presentation.auth
 
 
-
 import android.content.Context
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
@@ -48,7 +47,6 @@ class AuthViewModel @Inject constructor() : ViewModel() {
         auth.signOut()
 
     }
-
 
 
     fun signUp(
@@ -144,8 +142,7 @@ class AuthViewModel @Inject constructor() : ViewModel() {
                                 onResult("Signup successful", true)
                             }.addOnFailureListener { exception ->
                                 onResult(
-                                    "Failed to save user info: ${exception.localizedMessage}",
-                                    false
+                                    "Failed to save user info: ${exception.localizedMessage}", false
                                 )
                             }
                     } else {
@@ -207,25 +204,21 @@ class AuthViewModel @Inject constructor() : ViewModel() {
 
         val userRef = firestore.collection("user").document(uid)
 
-        userRef.get()
-            .addOnSuccessListener { doc ->
-                val appliedJobs = doc.get("lickedCity") as? List<String> ?: emptyList()
+        userRef.get().addOnSuccessListener { doc ->
+                val lickedCity = doc.get("lickedCity") as? List<String> ?: emptyList()
 
-                if (appliedJobs.contains(city)) {
+                if (lickedCity.contains(city)) {
 
                     onResult(false, "Already Licked This City")
                 } else {
 
-                    userRef.update("lickedCity", FieldValue.arrayUnion(city))
-                        .addOnSuccessListener {
+                    userRef.update("lickedCity", FieldValue.arrayUnion(city)).addOnSuccessListener {
                             onResult(true, "Saved successfully")
-                        }
-                        .addOnFailureListener { e ->
+                        }.addOnFailureListener { e ->
                             onResult(false, e.message)
                         }
                 }
-            }
-            .addOnFailureListener { e ->
+            }.addOnFailureListener { e ->
                 onResult(false, e.message)
             }
     }
@@ -234,8 +227,7 @@ class AuthViewModel @Inject constructor() : ViewModel() {
         val uid = auth.currentUser?.uid ?: return onResult(false, "User not logged in")
         val userRef = firestore.collection("user").document(uid)
 
-        userRef.get()
-            .addOnSuccessListener { doc ->
+        userRef.get().addOnSuccessListener { doc ->
                 val likedCities = doc.get("lickedCity") as? List<String> ?: emptyList()
 
                 if (!likedCities.contains(city)) {
@@ -244,18 +236,14 @@ class AuthViewModel @Inject constructor() : ViewModel() {
                     userRef.update("lickedCity", FieldValue.arrayRemove(city))
                         .addOnSuccessListener {
                             onResult(true, "City removed successfully")
-                        }
-                        .addOnFailureListener { e ->
+                        }.addOnFailureListener { e ->
                             onResult(false, e.message)
                         }
                 }
-            }
-            .addOnFailureListener { e ->
+            }.addOnFailureListener { e ->
                 onResult(false, e.message)
             }
     }
-
-
 
 
     fun fetchCurrentDonerData() {
@@ -315,9 +303,9 @@ data class PostUserInfo(
     val email: String,
     val uid: String,
     val passkey: String,
-    val likedCity: List<String>
+    val likedCity: List<String>,
 
-)
+    )
 
 data class GetUserInfo(
     val profileImageUrl: String = "",
@@ -325,6 +313,6 @@ data class GetUserInfo(
     val email: String = "",
     val uid: String = "",
     val passkey: String = "",
-    val likedCity: List<String> = emptyList<String>()
+    val likedCity: List<String> = emptyList<String>(),
 
-)
+    )

@@ -7,13 +7,14 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -59,12 +60,14 @@ class HomeViewModel @Inject constructor(
     val forecastDomainData = _forecastDomainData.asStateFlow()
 
 
-
     private val _isLoading = MutableStateFlow(false)
     var isLoading: StateFlow<Boolean> = _isLoading
 
     private val _onSearch = MutableStateFlow(false)
     var onSearch: StateFlow<Boolean> = _onSearch
+
+    private val _onError = MutableStateFlow(false)
+    var onError : StateFlow<Boolean> = _onError
 
 
     fun updateQuery(q: String) {
@@ -77,98 +80,98 @@ class HomeViewModel @Inject constructor(
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            _onSearch.value = true
-            _query.filter { it.isNotBlank() }.distinctUntilChanged().debounce(100)
+            _query
+                .filter { it.isNotBlank() }
+                .distinctUntilChanged()
                 .collectLatest { query ->
 
+                    _onSearch.value = true
 
+                    try {
 
-                    val data = weatherRepository.getWeather(
-                        city = query, apiKey = "2918d47481d7d0abd2195b35a3f64a1c"
-                    )
-
-                    val aqiData = weatherRepository.getAqi(
-                        lat = data.latitude,
-                        lon = data.latitude,
-                        apiKey = "2918d47481d7d0abd2195b35a3f64a1c"
-                    )
-
-                    val list = weatherRepository.getHourlyWeather(data.cityName,"2918d47481d7d0abd2195b35a3f64a1c")
-
-                    _aqiData.value = aqiData
-
-
-                    Log.d("HomeViewModel", "WeatherData updated: $data")
-
-                    _Domain_weatherData.value = data
-
-                    if (data.condition == "Unknown") {
-
-                    } else {
-                        weatherDao.upsertWeather(
-                            WeatherEntity(
-                                cityName = data.cityName,
-                                latitude = data.latitude,
-                                longitude = data.longitude,
-                                temperature = data.temperature,
-                                condition = data.condition,
-                                humidity = data.humidity,
-                                pressure = data.pressure,
-                                airQualityIndex = data.airQualityIndex,
-                                temp_max = data.temp_max,
-                                temp_min = data.temp_min,
-                                icon = data.icon
+                        val weatherDeferred = async {
+                            weatherRepository.getWeather(
+                                city = query, apiKey = "9ba81aeec448496a6e4396f9f63d40ec"
                             )
-                        )
+                        }
 
-                        weatherDao.insertForecast(
-                            forecast = ForecastEntity(
-                                cityName = data.cityName,
-                                DaysData = list.toEntityList()
+                        val weatherData = weatherDeferred.await()
+
+                        val aqiDeferred = async {
+                            weatherRepository.getAqi(
+                                lat = weatherData.latitude,
+                                lon = weatherData.longitude,
+                                apiKey = "9ba81aeec448496a6e4396f9f63d40ec"
                             )
-                        )
+                        }
 
+                        val forecastDeferred = async {
+                            weatherRepository.getHourlyWeather(
+                                weatherData.cityName,
+                                "9ba81aeec448496a6e4396f9f63d40ec"
+                            )
+                        }
+
+                        val aqiData = aqiDeferred.await()
+                        val forecastList = forecastDeferred.await()
+
+                        _aqiData.value = aqiData
+                        _Domain_weatherData.value = weatherData
+
+                        // Save only if condition is valid
+                        if (weatherData.condition != "Unknown") {
+                            weatherDao.upsertWeather(
+                                WeatherEntity(
+                                    cityName = weatherData.cityName,
+                                    latitude = weatherData.latitude,
+                                    longitude = weatherData.longitude,
+                                    temperature = weatherData.temperature,
+                                    condition = weatherData.condition,
+                                    humidity = weatherData.humidity,
+                                    pressure = weatherData.pressure,
+                                    airQualityIndex = weatherData.airQualityIndex,
+                                    temp_max = weatherData.temp_max,
+                                    temp_min = weatherData.temp_min,
+                                    icon = weatherData.icon
+                                )
+                            )
+
+                            weatherDao.insertForecast(
+                                ForecastEntity(
+                                    cityName = weatherData.cityName,
+                                    DaysData = forecastList.toEntityList()
+                                )
+                            )
+                        } else {
+                            _onError.value = true
+                        }
+
+
+                        _localWeatherData.value =
+                            weatherDao.getWeatherByCity(weatherData.cityName).firstOrNull()
+
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        _onError.value = true
+                    } finally {
+                        _onSearch.value = false
                     }
-
-
-                    weatherDao.getWeatherByCity(data.cityName).collect { localData ->
-                        _localWeatherData.value = localData
-                    }
-
-
-
-
-
-
-
-                    getF(query)
-
-
-
                 }
+        }
+    }
 
 
+    fun getF(city: String) {
+        viewModelScope.launch {
+            weatherDao.getForecast(city).collect {
 
-            _onSearch.value = false
+                _forecastDomainData.value = it
+                Log.d("HomeViewModel", "WeatherData updated: ${it?.DaysData}")
+
+            }
         }
 
-
     }
-
-     fun getF (city: String){
-         viewModelScope.launch {
-             weatherDao.getForecast(city).collect {
-
-                 _forecastDomainData.value = it
-                 Log.d("HomeViewModel", "WeatherData updated: ${it?.DaysData}")
-
-             }
-         }
-
-    }
-
-
-
 
 
     private val _lickedCity = MutableStateFlow<List<WeatherEntity>>(emptyList())
@@ -190,8 +193,7 @@ class HomeViewModel @Inject constructor(
                 lickedCity.forEach { city ->
 
                     val updatedCityData = weatherRepository.getWeather(
-                        city = city,
-                        apiKey = "2918d47481d7d0abd2195b35a3f64a1c"
+                        city = city, apiKey = "9ba81aeec448496a6e4396f9f63d40ec"
                     )
 
 
@@ -223,7 +225,6 @@ class HomeViewModel @Inject constructor(
                 }
 
 
-
             } else {
                 _isLoading.value = false
                 _lickedCity.value = emptyList()
@@ -233,6 +234,30 @@ class HomeViewModel @Inject constructor(
     }
 
 
+
+
+    fun clearAppDataSafely(
+        onDelete: (success: Boolean, message: String) -> Unit,
+    ) {
+        val uid = auth.currentUser?.uid ?: return
+
+        viewModelScope.launch {
+            val userRef = firestore.collection("user").document(uid)
+
+            try {
+
+                userRef.update("lickedCity", emptyList<String>()).await()
+
+                onDelete(true, "All data removed successfully")
+
+
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+                onDelete(false, "Failed to clear cache : ${e.message}")
+            }
+        }
+    }
 
 
 

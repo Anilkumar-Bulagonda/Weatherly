@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 import uk.ac.tees.mad.weatherly.data.local.forcast.ForecastEntity
@@ -13,11 +14,7 @@ import uk.ac.tees.mad.weatherly.data.local.weather.WeatherEntity
 interface WeatherDao {
 
 
-    @Query("""
-    SELECT * FROM weather_table
-    WHERE REPLACE(LOWER(cityName), ' ', '') LIKE '%' || REPLACE(LOWER(:cityName), ' ', '') || '%'
-    LIMIT 1
-""")
+    @Query("SELECT * FROM weather_table WHERE LOWER(cityName) = LOWER(:cityName) LIMIT 1")
     fun getWeatherByCity(cityName: String): Flow<WeatherEntity?>
 
 
@@ -44,6 +41,18 @@ interface WeatherDao {
     LIMIT 1
 """)
     fun getForecast(city: String): Flow<ForecastEntity?>
+
+    @Query("DELETE FROM weather_table")
+    suspend fun clearWeatherData()
+
+    @Query("DELETE FROM forecast_table")
+    suspend fun clearForecastData()
+
+    @Transaction
+    suspend fun clearAllData() {
+        clearWeatherData()
+        clearForecastData()
+    }
 
 
 }
